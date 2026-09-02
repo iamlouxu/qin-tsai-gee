@@ -8,6 +8,7 @@ import { WeddingGoalCard } from './components/dashboard/WeddingGoalCard';
 import { SpendingTrendChart } from './components/dashboard/SpendingTrendChart';
 import { TransactionList } from './components/dashboard/TransactionList';
 import { QuickAddDrawer } from './components/modal/QuickAddDrawer';
+import { AnalyticsView } from './components/analytics/AnalyticsView';
 import { initialLedgers, initialTransactions, currentUser } from './data/mockData';
 import { Ledger, Transaction } from './types';
 
@@ -103,42 +104,63 @@ export function App() {
 
   return (
     <MobileContainer>
-      {/* 1. Header with Ledger Switcher */}
-      <LedgerSwitcher
-        ledgers={ledgers}
-        currentLedger={currentLedger}
-        onSelectLedger={setCurrentLedger}
-      />
+      {activeTab === 'home' && (
+        <>
+          {/* 1. Header with Ledger Switcher */}
+          <LedgerSwitcher
+            ledgers={ledgers}
+            currentLedger={currentLedger}
+            onSelectLedger={setCurrentLedger}
+          />
 
-      {/* 2. Hero Card: Dynamic switch based on ledger type */}
-      {currentLedger.type === 'personal' ? (
-        <PersonalOverviewCard
-          balance={personalStats.balance}
-          totalExpense={personalStats.totalExpense}
-          totalIncome={personalStats.totalIncome}
-          monthlyBudget={personalStats.monthlyBudget}
-        />
-      ) : (
-        <WeddingGoalCard
-          targetAmount={weddingStats.targetAmount}
-          currentSavings={weddingStats.currentSavings}
-          userContribution={weddingStats.userContribution}
-          partnerContribution={weddingStats.partnerContribution}
-          onQuickDepositClick={() => setIsQuickAddOpen(true)}
-        />
+          {/* 2. Hero Card: Dynamic switch based on ledger type */}
+          {currentLedger.type === 'personal' ? (
+            <PersonalOverviewCard
+              balance={personalStats.balance}
+              totalExpense={personalStats.totalExpense}
+              totalIncome={personalStats.totalIncome}
+              monthlyBudget={personalStats.monthlyBudget}
+            />
+          ) : (
+            <WeddingGoalCard
+              targetAmount={weddingStats.targetAmount}
+              currentSavings={weddingStats.currentSavings}
+              userContribution={weddingStats.userContribution}
+              partnerContribution={weddingStats.partnerContribution}
+              onQuickDepositClick={() => setIsQuickAddOpen(true)}
+            />
+          )}
+
+          {/* 3. Spending Trend Chart (Mibu Minimalist Curve) */}
+          <SpendingTrendChart
+            data={trendData.days}
+            totalWeekly={trendData.totalWeekly}
+          />
+
+          {/* 4. Recent Transaction Feed */}
+          <TransactionList
+            transactions={currentLedgerTransactions}
+            isSharedLedger={currentLedger.type === 'shared'}
+          />
+        </>
       )}
 
-      {/* 3. Spending Trend Chart (Mibu Minimalist Curve) */}
-      <SpendingTrendChart
-        data={trendData.days}
-        totalWeekly={trendData.totalWeekly}
-      />
+      {activeTab === 'analytics' && (
+        <>
+          {/* Header with Ledger Switcher */}
+          <LedgerSwitcher
+            ledgers={ledgers}
+            currentLedger={currentLedger}
+            onSelectLedger={setCurrentLedger}
+          />
 
-      {/* 4. Recent Transaction Feed */}
-      <TransactionList
-        transactions={currentLedgerTransactions}
-        isSharedLedger={currentLedger.type === 'shared'}
-      />
+          {/* Analytics View */}
+          <AnalyticsView
+            currentLedger={currentLedger}
+            transactions={transactions}
+          />
+        </>
+      )}
 
       {/* 5. Right-Floating Quick Add FAB Button */}
       <FloatingAddButton onClick={() => setIsQuickAddOpen(true)} />
