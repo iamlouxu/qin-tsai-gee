@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { MobileContainer } from './components/layout/MobileContainer';
-import { BottomNav, NavTab } from './components/layout/BottomNav';
+import { BottomNav } from './components/layout/BottomNav';
 import { FloatingAddButton } from './components/layout/FloatingAddButton';
 import { LedgerSwitcher } from './components/dashboard/LedgerSwitcher';
 import { PersonalOverviewCard } from './components/dashboard/PersonalOverviewCard';
@@ -18,7 +19,6 @@ export function App() {
   // Default to Personal Ledger as requested by user
   const [currentLedger, setCurrentLedger] = useState<Ledger>(initialLedgers[0]);
   const [transactions, setTransactions] = useState<Transaction[]>(initialTransactions);
-  const [activeTab, setActiveTab] = useState<NavTab>('home');
   const [isQuickAddOpen, setIsQuickAddOpen] = useState(false);
 
   // Filter transactions for current ledger
@@ -119,106 +119,117 @@ export function App() {
 
   return (
     <MobileContainer>
-      {activeTab === 'home' && (
-        <>
-          {/* 1. Header with Ledger Switcher */}
-          <LedgerSwitcher
-            ledgers={ledgers}
-            currentLedger={currentLedger}
-            onSelectLedger={setCurrentLedger}
-          />
+      <Routes>
+        {/* 1. Home / Dashboard Route */}
+        <Route
+          path="/"
+          element={
+            <>
+              {/* Header with Ledger Switcher */}
+              <LedgerSwitcher
+                ledgers={ledgers}
+                currentLedger={currentLedger}
+                onSelectLedger={setCurrentLedger}
+              />
 
-          {/* 2. Hero Card: Dynamic switch based on ledger type */}
-          {currentLedger.type === 'personal' ? (
-            <PersonalOverviewCard
-              balance={personalStats.balance}
-              totalExpense={personalStats.totalExpense}
-              totalIncome={personalStats.totalIncome}
-              monthlyBudget={personalStats.monthlyBudget}
-            />
-          ) : (
-            <WeddingGoalCard
-              targetAmount={weddingStats.targetAmount}
-              currentSavings={weddingStats.currentSavings}
-              userContribution={weddingStats.userContribution}
-              partnerContribution={weddingStats.partnerContribution}
-              onQuickDepositClick={() => setIsQuickAddOpen(true)}
-            />
-          )}
+              {/* Hero Card: Dynamic switch based on ledger type */}
+              {currentLedger.type === 'personal' ? (
+                <PersonalOverviewCard
+                  balance={personalStats.balance}
+                  totalExpense={personalStats.totalExpense}
+                  totalIncome={personalStats.totalIncome}
+                  monthlyBudget={personalStats.monthlyBudget}
+                />
+              ) : (
+                <WeddingGoalCard
+                  targetAmount={weddingStats.targetAmount}
+                  currentSavings={weddingStats.currentSavings}
+                  userContribution={weddingStats.userContribution}
+                  partnerContribution={weddingStats.partnerContribution}
+                  onQuickDepositClick={() => setIsQuickAddOpen(true)}
+                />
+              )}
 
-          {/* 3. Spending Trend Chart (Mibu Minimalist Curve) */}
-          <SpendingTrendChart
-            data={trendData.days}
-            totalWeekly={trendData.totalWeekly}
-          />
+              {/* Spending Trend Chart (Mibu Minimalist Curve) */}
+              <SpendingTrendChart
+                data={trendData.days}
+                totalWeekly={trendData.totalWeekly}
+              />
 
-          {/* 4. Recent Transaction Feed */}
-          <TransactionList
-            transactions={currentLedgerTransactions}
-            isSharedLedger={currentLedger.type === 'shared'}
-          />
-        </>
-      )}
+              {/* Recent Transaction Feed */}
+              <TransactionList
+                transactions={currentLedgerTransactions}
+                isSharedLedger={currentLedger.type === 'shared'}
+              />
+            </>
+          }
+        />
 
-      {activeTab === 'analytics' && (
-        <>
-          {/* Header with Ledger Switcher */}
-          <LedgerSwitcher
-            ledgers={ledgers}
-            currentLedger={currentLedger}
-            onSelectLedger={setCurrentLedger}
-          />
+        {/* 2. Analytics Route */}
+        <Route
+          path="/analytics"
+          element={
+            <>
+              <LedgerSwitcher
+                ledgers={ledgers}
+                currentLedger={currentLedger}
+                onSelectLedger={setCurrentLedger}
+              />
+              <AnalyticsView
+                currentLedger={currentLedger}
+                transactions={transactions}
+              />
+            </>
+          }
+        />
 
-          {/* Analytics View */}
-          <AnalyticsView
-            currentLedger={currentLedger}
-            transactions={transactions}
-          />
-        </>
-      )}
+        {/* 3. Goals & Budget Route */}
+        <Route
+          path="/goals"
+          element={
+            <>
+              <LedgerSwitcher
+                ledgers={ledgers}
+                currentLedger={currentLedger}
+                onSelectLedger={setCurrentLedger}
+              />
+              <GoalsView
+                currentLedger={currentLedger}
+                transactions={transactions}
+                currentSavings={
+                  currentLedger.type === 'shared'
+                    ? weddingStats.currentSavings
+                    : personalStats.currentSavings
+                }
+                userContribution={
+                  currentLedger.type === 'shared'
+                    ? weddingStats.userContribution
+                    : personalStats.currentSavings
+                }
+                partnerContribution={
+                  currentLedger.type === 'shared'
+                    ? weddingStats.partnerContribution
+                    : 0
+                }
+                onQuickDepositClick={() => setIsQuickAddOpen(true)}
+                onUpdateLedgerTarget={handleUpdateLedgerTarget}
+                onUpdateLedgerBudget={handleUpdateLedgerBudget}
+              />
+            </>
+          }
+        />
 
-      {activeTab === 'goals' && (
-        <>
-          {/* Header with Ledger Switcher */}
-          <LedgerSwitcher
-            ledgers={ledgers}
-            currentLedger={currentLedger}
-            onSelectLedger={setCurrentLedger}
-          />
+        {/* Fallback to Home */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
 
-          {/* Goals & Budget View */}
-          <GoalsView
-            currentLedger={currentLedger}
-            transactions={transactions}
-            currentSavings={
-              currentLedger.type === 'shared'
-                ? weddingStats.currentSavings
-                : personalStats.currentSavings
-            }
-            userContribution={
-              currentLedger.type === 'shared'
-                ? weddingStats.userContribution
-                : personalStats.currentSavings
-            }
-            partnerContribution={
-              currentLedger.type === 'shared'
-                ? weddingStats.partnerContribution
-                : 0
-            }
-            onQuickDepositClick={() => setIsQuickAddOpen(true)}
-            onUpdateLedgerTarget={handleUpdateLedgerTarget}
-            onUpdateLedgerBudget={handleUpdateLedgerBudget}
-          />
-        </>
-      )}
-
-      {/* 5. Right-Floating Quick Add FAB Button */}
+      {/* Right-Floating Quick Add FAB Button */}
       <FloatingAddButton onClick={() => setIsQuickAddOpen(true)} />
 
-      {/* 6. Floating Bottom Navigation Bar */}
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      {/* Floating Bottom Navigation Bar (Uses React Router) */}
+      <BottomNav />
 
-      {/* 7. Quick Add Drawer Modal */}
+      {/* Quick Add Drawer Modal */}
       <QuickAddDrawer
         isOpen={isQuickAddOpen}
         onClose={() => setIsQuickAddOpen(false)}
@@ -230,4 +241,5 @@ export function App() {
 }
 
 export default App;
+
 
