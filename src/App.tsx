@@ -14,6 +14,7 @@ import { GoalsView } from './components/goals/GoalsView';
 import { initialLedgers, initialTransactions, currentUser } from './data/mockData';
 import { Ledger, Transaction } from './types';
 
+// App 根元件：負責全域狀態管理與路由配置
 export function App() {
   const [ledgers, setLedgers] = useState<Ledger[]>(initialLedgers);
   // Default to Personal Ledger as requested by user
