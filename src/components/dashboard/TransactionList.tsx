@@ -62,7 +62,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
         <h2 className="text-sm font-bold text-rose-950 font-sans tracking-tight">
           近期收支明細
         </h2>
-        <span className="text-xs text-rose-600/80 font-semibold cursor-pointer hover:text-rose-700">
+        <span className="text-xs text-rose-600/80 font-medium cursor-pointer hover:text-rose-700 transition-colors">
           查看全部
         </span>
       </div>
@@ -78,12 +78,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({
           return (
             <div key={date} className="space-y-2">
               {/* Date Header Pill */}
-              <div className="text-[11px] font-bold text-rose-800/70 px-2 uppercase tracking-wide">
-                {formatDateDisplay(date)}
+              <div className="flex items-center space-x-1.5 text-[11px] font-medium text-rose-900/70 px-1 py-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-rose-400/80" />
+                <span>{formatDateDisplay(date)}</span>
               </div>
 
               {/* Transactions in Date */}
-              <div className="glass-card rounded-3xl p-2.5 space-y-1 divide-y divide-rose-100/50">
+              <div className="glass-card rounded-3xl p-2 space-y-0.5 divide-y divide-rose-100/40 shadow-[0_6px_20px_-4px_rgba(251,113,133,0.06)]">
                 {items.map((tx) => {
                   const IconComponent = iconMap[tx.category?.iconName] || ReceiptText;
                   const isExpense = tx.type === 'expense';
@@ -92,12 +93,12 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                   return (
                     <div
                       key={tx.id}
-                      className="flex items-center justify-between p-2 hover:bg-rose-50/50 rounded-2xl transition-colors"
+                      className="flex items-center justify-between p-2.5 hover:bg-rose-50/60 rounded-2xl transition-all duration-150 active:scale-[0.985] cursor-pointer"
                     >
                       {/* Left: Icon & Title */}
                       <div className="flex items-center space-x-3 overflow-hidden">
                         <div
-                          className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-xs"
+                          className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 shadow-2xs border border-white/60"
                           style={{
                             backgroundColor: tx.category?.bgColor || '#FFE4E6',
                             color: tx.category?.color || '#F43F5E',
@@ -114,7 +115,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                               {tx.category.name} · {tx.time}
                             </span>
                             {isSharedLedger && (
-                              <span className="inline-flex items-center gap-0.5 text-[9px] font-bold bg-rose-100/70 text-rose-700 px-1.5 py-0.2 rounded-md">
+                              <span className="inline-flex items-center gap-0.5 text-[9px] font-medium bg-rose-100/80 text-rose-800 px-1.5 py-0.5 rounded-md">
                                 👤 {tx.user.name.split(' ')[0]}
                               </span>
                             )}
@@ -125,7 +126,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                       {/* Right: Amount */}
                       <div className="text-right shrink-0 pl-2">
                         <div
-                          className={`font-display font-bold text-sm leading-tight ${
+                          className={`font-display font-bold text-sm leading-tight tracking-tight ${
                             isExpense
                               ? 'text-rose-600'
                               : isDeposit
@@ -133,10 +134,13 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                               : 'text-emerald-600'
                           }`}
                         >
-                          {isExpense ? '-' : '+'} {formatCurrency(tx.amount)}
+                          <span className="text-xs font-semibold mr-0.5 opacity-75">
+                            {isExpense ? '-' : '+'}
+                          </span>
+                          {formatCurrency(tx.amount)}
                         </div>
                         {isDeposit && (
-                          <div className="text-[9px] font-bold text-pink-500">
+                          <div className="text-[9px] font-bold text-pink-500 mt-0.5">
                             💍 存入基金
                           </div>
                         )}

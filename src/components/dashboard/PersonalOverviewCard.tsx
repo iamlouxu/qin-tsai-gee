@@ -1,6 +1,6 @@
 import React from 'react';
 import { ArrowUpRight, ArrowDownLeft, ShieldCheck } from 'lucide-react';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatNumber } from '../../utils/formatters';
 
 interface PersonalOverviewCardProps {
   balance: number;
@@ -19,67 +19,67 @@ export const PersonalOverviewCard: React.FC<PersonalOverviewCardProps> = ({
   const remainingBudget = Math.max(0, monthlyBudget - totalExpense);
 
   return (
-    <div className="pink-gradient-card rounded-4xl p-6 text-white relative overflow-hidden mb-5">
-      {/* Decorative Light Glows */}
-      <div className="absolute -right-8 -top-8 w-36 h-36 bg-white/15 rounded-full blur-2xl pointer-events-none" />
-      <div className="absolute -left-8 -bottom-8 w-36 h-36 bg-rose-900/20 rounded-full blur-xl pointer-events-none" />
-
-      {/* Header Info */}
-      <div className="flex justify-between items-center mb-1">
-        <span className="text-xs font-semibold text-rose-100 uppercase tracking-wider">
-          8 月份 總結餘
+    <div className="pink-gradient-card rounded-3xl p-5 text-white relative overflow-hidden mb-5 border border-white/30 shadow-[0_14px_34px_-6px_rgba(244,63,94,0.38)]">
+      {/* Top Meta Header */}
+      <div className="flex justify-between items-center mb-2">
+        <span className="text-xs font-medium text-rose-100/90">
+          8 月份 · 總結餘
         </span>
-        <div className="flex items-center space-x-1 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[11px] font-medium text-white border border-white/25">
-          <ShieldCheck className="w-3.5 h-3.5 text-rose-200" />
-          <span>預算正常</span>
+        <div className="flex items-center space-x-1 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[11px] font-medium text-white border border-white/30 shadow-xs">
+          <ShieldCheck className="w-3.5 h-3.5 text-rose-100" />
+          <span>預算健康</span>
         </div>
       </div>
 
-      {/* Hero Balance Display */}
-      <div className="font-display font-extrabold text-[36px] tracking-tight text-white mb-4 leading-tight">
-        {formatCurrency(balance)}
+      {/* Hero Balance Display with Distinct Currency Hierarchy */}
+      <div className="flex items-baseline gap-1.5 mb-4">
+        <span className="text-base font-bold text-rose-100/90 font-display">NT$</span>
+        <span className="font-display font-extrabold text-[38px] tracking-tight text-white leading-none">
+          {formatNumber(balance)}
+        </span>
       </div>
 
-      {/* Expense & Income Grid Cards */}
-      <div className="grid grid-cols-2 gap-3 mb-4">
+      {/* Expense & Income Cards */}
+      <div className="grid grid-cols-2 gap-2.5 mb-3.5">
         {/* Expense Card */}
-        <div className="bg-white/15 backdrop-blur-md rounded-2xl p-3 border border-white/20">
+        <div className="bg-white/15 backdrop-blur-md rounded-2xl p-3 border border-white/20 transition-transform active:scale-[0.98]">
           <div className="flex items-center space-x-1.5 text-rose-100 text-xs mb-1">
-            <span className="w-4 h-4 rounded-full bg-rose-400/40 flex items-center justify-center">
+            <span className="w-4 h-4 rounded-full bg-rose-400/50 flex items-center justify-center">
               <ArrowDownLeft className="w-3 h-3 text-white stroke-[2.5]" />
             </span>
-            <span>本月總支出</span>
+            <span className="font-medium">本月總支出</span>
           </div>
-          <div className="font-display font-bold text-lg text-white">
+          <div className="font-display font-bold text-[17px] text-white tracking-tight">
             {formatCurrency(totalExpense)}
           </div>
         </div>
 
         {/* Income Card */}
-        <div className="bg-white/15 backdrop-blur-md rounded-2xl p-3 border border-white/20">
+        <div className="bg-white/15 backdrop-blur-md rounded-2xl p-3 border border-white/20 transition-transform active:scale-[0.98]">
           <div className="flex items-center space-x-1.5 text-rose-100 text-xs mb-1">
-            <span className="w-4 h-4 rounded-full bg-emerald-400/40 flex items-center justify-center">
+            <span className="w-4 h-4 rounded-full bg-emerald-400/50 flex items-center justify-center">
               <ArrowUpRight className="w-3 h-3 text-white stroke-[2.5]" />
             </span>
-            <span>本月總收入</span>
+            <span className="font-medium">本月總收入</span>
           </div>
-          <div className="font-display font-bold text-lg text-white">
+          <div className="font-display font-bold text-[17px] text-white tracking-tight">
             {formatCurrency(totalIncome)}
           </div>
         </div>
       </div>
 
       {/* Budget Progress Bar */}
-      <div className="bg-black/10 backdrop-blur-sm rounded-2xl p-3 border border-white/10">
+      <div className="bg-black/15 backdrop-blur-md rounded-2xl p-3 border border-white/15">
         <div className="flex justify-between items-center text-xs text-rose-100 mb-1.5">
-          <span>每月預算消耗</span>
+          <span className="font-medium">預算消耗進度</span>
           <span className="font-semibold text-white">
-            剩餘 {formatCurrency(remainingBudget)} ({budgetPercent}%)
+            剩餘 {formatCurrency(remainingBudget)}{' '}
+            <span className="text-rose-200/90 font-normal">({budgetPercent}%)</span>
           </span>
         </div>
-        <div className="w-full bg-white/20 h-2.5 rounded-full overflow-hidden p-0.5">
+        <div className="w-full bg-black/20 h-2 rounded-full overflow-hidden p-[1px]">
           <div
-            className="bg-white h-full rounded-full transition-all duration-500 shadow-sm"
+            className="bg-gradient-to-r from-white/80 to-white h-full rounded-full transition-all duration-500 shadow-xs"
             style={{ width: `${budgetPercent}%` }}
           />
         </div>
@@ -87,3 +87,4 @@ export const PersonalOverviewCard: React.FC<PersonalOverviewCardProps> = ({
     </div>
   );
 };
+

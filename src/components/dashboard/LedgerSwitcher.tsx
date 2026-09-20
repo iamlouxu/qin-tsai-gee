@@ -71,9 +71,9 @@ export const LedgerSwitcher: React.FC<LedgerSwitcherProps> = ({
             className="fixed inset-0 z-20"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute top-11 left-0 w-64 bg-white/95 backdrop-blur-xl rounded-3xl p-2 shadow-card-hover border border-rose-100 z-30 animate-in fade-in zoom-in-95 duration-150">
-            <div className="text-[11px] font-bold text-rose-900/60 px-3 py-1.5 uppercase tracking-wider">
-              切換帳本
+          <div className="absolute top-11 left-0 w-64 bg-white/95 backdrop-blur-xl rounded-3xl p-2 shadow-card-hover border border-rose-100/90 z-30 animate-in fade-in zoom-in-95 duration-150">
+            <div className="text-[11px] font-medium text-rose-900/60 px-3 py-1.5">
+              選擇切換帳本
             </div>
             {ledgers.map((ledger) => {
               const isSelected = ledger.id === currentLedger.id;
@@ -84,9 +84,9 @@ export const LedgerSwitcher: React.FC<LedgerSwitcherProps> = ({
                     onSelectLedger(ledger);
                     setIsOpen(false);
                   }}
-                  className={`w-full flex items-center justify-between p-2.5 rounded-2xl text-left transition-all ${
+                  className={`w-full flex items-center justify-between p-2.5 rounded-2xl text-left transition-all active:scale-[0.98] ${
                     isSelected
-                      ? 'bg-rose-50/90 text-rose-950 font-bold'
+                      ? 'bg-rose-50/90 text-rose-950 font-bold shadow-2xs'
                       : 'hover:bg-slate-50 text-slate-700'
                   }`}
                 >
