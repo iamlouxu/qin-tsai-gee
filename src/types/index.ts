@@ -51,3 +51,18 @@ export interface SpendingDayTrend {
   date: string;
   amount: number;
 }
+
+export interface SavingsMilestone {
+  id: string;
+  title: string;
+  targetAmount: number;
+  percentage: number;
+  icon: string;
+  description?: string;
+}
+
+export interface CategoryBudget {
+  categoryId: string;
+  monthlyLimit: number;
+}
+
