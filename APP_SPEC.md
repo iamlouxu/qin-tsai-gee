@@ -4,7 +4,7 @@
 
 ---
 
-## 📌 1. 產品核心定位與視覺設計系統 (遵循 ui-ux-pro-max 規範)
+## 📌 1. 產品核心定位與視覺設計系統
 
 * **產品名稱**：**沁菜記 (Qin Tsai Gee)**
 * **產品形態**：**Mobile-First 響應式 Web App**（支援手機瀏覽器全螢幕體驗、PWA 離線安裝、桌面瀏覽器自動以 430px 手機比例置中呈現）。
@@ -12,7 +12,7 @@
 * **設計風格與視覺參考**：參考 Dribbble [Mibu - Budget Expense Tracker & Finance App Design (by Girish)](https://dribbble.com/shots/23882234-Mibu-Budget-Expense-Tracker-Finance-App-Design) 之極簡無框線排版、大字級財務指標與懸浮膠囊佈局，並融入粉紅沉浸主題色系。
 
 ### 🎨 設計系統 Tokens：粉紅沉浸主題 (Pink Immersion Theme)
-遵循 `ui-ux-pro-max` 色彩規範，讓整個頁面呈現一眼即識的精緻粉紅視覺：
+遵循現代 UI/UX 色彩與無障礙規範，讓整個頁面呈現一眼即識的精緻粉紅視覺：
 
 1. **色彩系統 (WCAG 2.1 AA 嚴格對比保證)**：
    * **Page Background (頁面粉紅底色)**：`#FCE7F3` (Tailwind Pink-100) 至 `#FDF2F8` (Pink-50) 柔粉漸層，全頁呈現溫柔飽滿的粉紅氛圍。
@@ -143,7 +143,7 @@
   * `Calendar` / `Popover`：高彈性自訂記帳日期選擇器（支援今天/昨天快捷鍵與任意日期補記）
   * `Sonner / Toast`：記帳成功的微互動粉色提示通知
   * `Progress` / `Tabs` / `Badge`：結婚基金目標進度條、預算消耗條、收支切換標籤與分類膠囊
-* **圖示系統**：**Lucide React**（遵循 Skill 規範，全站使用一致向量 SVG 圖示）
+* **圖示系統**：**Lucide React**（全站使用一致向量 SVG 圖示）
 * **動效與手勢**：**Framer Motion** / CSS Transitions（底部膠囊導航、存錢達標彩帶動效 `canvas-confetti`）
 
 ---
