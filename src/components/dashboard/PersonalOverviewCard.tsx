@@ -1,6 +1,6 @@
-import React from 'react';
-import { ArrowUpRight, ArrowDownLeft, ShieldCheck } from 'lucide-react';
-import { formatCurrency, formatNumber } from '../../utils/formatters';
+import React, { useState } from 'react';
+import { ChevronDown, Search, ArrowUpRight, ArrowDownLeft } from 'lucide-react';
+import { formatCurrency } from '../../utils/formatters';
 
 interface PersonalOverviewCardProps {
   balance: number;
@@ -15,76 +15,59 @@ export const PersonalOverviewCard: React.FC<PersonalOverviewCardProps> = ({
   totalIncome,
   monthlyBudget,
 }) => {
-  const budgetPercent = Math.min(100, Math.round((totalExpense / monthlyBudget) * 100));
+  const [showDetails, setShowDetails] = useState(false);
   const remainingBudget = Math.max(0, monthlyBudget - totalExpense);
 
   return (
-    <div className="pink-gradient-card rounded-3xl p-5 text-white relative overflow-hidden mb-5 border border-white/30 shadow-[0_14px_34px_-6px_rgba(244,63,94,0.38)]">
-      {/* Top Meta Header */}
-      <div className="flex justify-between items-center mb-2">
-        <span className="text-xs font-medium text-rose-100/90">
-          8 月份 · 總結餘
-        </span>
-        <div className="flex items-center space-x-1 bg-white/20 backdrop-blur-md px-2.5 py-0.5 rounded-full text-[11px] font-medium text-white border border-white/30 shadow-xs">
-          <ShieldCheck className="w-3.5 h-3.5 text-rose-100" />
-          <span>預算健康</span>
+    <div className="pt-2 pb-1 text-center select-none">
+      {/* Top Filter Bar: Centered Period Capsule & Search */}
+      <div className="relative flex items-center justify-center mb-5">
+        <button
+          onClick={() => setShowDetails(!showDetails)}
+          className="inline-flex items-center space-x-1.5 bg-white/95 hover:bg-white border border-rose-200/80 px-4 py-1.5 rounded-full text-xs font-semibold text-slate-800 shadow-2xs active:scale-95 transition-all"
+        >
+          <span>this month</span>
+          <ChevronDown
+            className={`w-3.5 h-3.5 text-slate-500 transition-transform duration-200 ${
+              showDetails ? 'rotate-180' : ''
+            }`}
+          />
+        </button>
+
+        {/* Search Icon button on the right */}
+        <button
+          className="absolute right-1 w-8 h-8 rounded-full flex items-center justify-center text-slate-600 hover:text-rose-600 hover:bg-white/60 active:scale-95 transition-all"
+          title="搜尋收支"
+        >
+          <Search className="w-4 h-4 stroke-[2]" />
+        </button>
+      </div>
+
+      {/* Hero Big Amount: Centered Clean Minimalist Display */}
+      <div className="mb-2">
+        <div className="font-display font-extrabold text-[44px] tracking-tight text-slate-900 leading-none">
+          {formatCurrency(balance)}
         </div>
       </div>
 
-      {/* Hero Balance Display with Distinct Currency Hierarchy */}
-      <div className="flex items-baseline gap-1.5 mb-4">
-        <span className="text-base font-bold text-rose-100/90 font-display">NT$</span>
-        <span className="font-display font-extrabold text-[38px] tracking-tight text-white leading-none">
-          {formatNumber(balance)}
-        </span>
-      </div>
-
-      {/* Expense & Income Cards */}
-      <div className="grid grid-cols-2 gap-2.5 mb-3.5">
-        {/* Expense Card */}
-        <div className="bg-white/15 backdrop-blur-md rounded-2xl p-3 border border-white/20 transition-transform active:scale-[0.98]">
-          <div className="flex items-center space-x-1.5 text-rose-100 text-xs mb-1">
-            <span className="w-4 h-4 rounded-full bg-rose-400/50 flex items-center justify-center">
-              <ArrowDownLeft className="w-3 h-3 text-white stroke-[2.5]" />
-            </span>
-            <span className="font-medium">本月總支出</span>
-          </div>
-          <div className="font-display font-bold text-[17px] text-white tracking-tight">
-            {formatCurrency(totalExpense)}
-          </div>
-        </div>
-
-        {/* Income Card */}
-        <div className="bg-white/15 backdrop-blur-md rounded-2xl p-3 border border-white/20 transition-transform active:scale-[0.98]">
-          <div className="flex items-center space-x-1.5 text-rose-100 text-xs mb-1">
-            <span className="w-4 h-4 rounded-full bg-emerald-400/50 flex items-center justify-center">
-              <ArrowUpRight className="w-3 h-3 text-white stroke-[2.5]" />
-            </span>
-            <span className="font-medium">本月總收入</span>
-          </div>
-          <div className="font-display font-bold text-[17px] text-white tracking-tight">
-            {formatCurrency(totalIncome)}
-          </div>
-        </div>
-      </div>
-
-      {/* Budget Progress Bar */}
-      <div className="bg-black/15 backdrop-blur-md rounded-2xl p-3 border border-white/15">
-        <div className="flex justify-between items-center text-xs text-rose-100 mb-1.5">
-          <span className="font-medium">預算消耗進度</span>
-          <span className="font-semibold text-white">
-            剩餘 {formatCurrency(remainingBudget)}{' '}
-            <span className="text-rose-200/90 font-normal">({budgetPercent}%)</span>
+      {/* Optional Expandable Breakdown Pills */}
+      {showDetails && (
+        <div className="flex items-center justify-center gap-2.5 mt-3 mb-1 animate-in fade-in zoom-in-95 duration-200">
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-rose-600 bg-rose-50 px-2.5 py-1 rounded-full border border-rose-200/60 shadow-2xs">
+            <ArrowDownLeft className="w-3 h-3" />
+            支 {formatCurrency(totalExpense)}
+          </span>
+          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200/60 shadow-2xs">
+            <ArrowUpRight className="w-3 h-3" />
+            收 {formatCurrency(totalIncome)}
+          </span>
+          <span className="text-[11px] text-slate-500 font-medium">
+            預算餘 {formatCurrency(remainingBudget)}
           </span>
         </div>
-        <div className="w-full bg-black/20 h-2 rounded-full overflow-hidden p-[1px]">
-          <div
-            className="bg-gradient-to-r from-white/80 to-white h-full rounded-full transition-all duration-500 shadow-xs"
-            style={{ width: `${budgetPercent}%` }}
-          />
-        </div>
-      </div>
+      )}
     </div>
   );
 };
+
 

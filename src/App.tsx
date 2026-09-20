@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { MobileContainer } from './components/layout/MobileContainer';
 import { BottomNav } from './components/layout/BottomNav';
-import { FloatingAddButton } from './components/layout/FloatingAddButton';
 import { LedgerSwitcher } from './components/dashboard/LedgerSwitcher';
 import { PersonalOverviewCard } from './components/dashboard/PersonalOverviewCard';
 import { WeddingGoalCard } from './components/dashboard/WeddingGoalCard';
@@ -224,11 +223,8 @@ export function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      {/* Right-Floating Quick Add FAB Button */}
-      <FloatingAddButton onClick={() => setIsQuickAddOpen(true)} />
-
-      {/* Floating Bottom Navigation Bar (Uses React Router) */}
-      <BottomNav />
+      {/* Floating Bottom Navigation Bar with centered Add Button */}
+      <BottomNav onAddClick={() => setIsQuickAddOpen(true)} />
 
       {/* Quick Add Drawer Modal */}
       <QuickAddDrawer
