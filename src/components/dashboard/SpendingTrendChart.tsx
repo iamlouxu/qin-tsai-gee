@@ -7,7 +7,7 @@ import {
   XAxis,
 } from 'recharts';
 import { TrendingUp } from 'lucide-react';
-import { formatCurrency } from '../../utils/formatters';
+import { formatCurrency, formatNumber } from '../../utils/formatters';
 
 interface SpendingTrendChartProps {
   data: { day: string; amount: number; fullDate: string }[];
@@ -19,18 +19,21 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({
   totalWeekly,
 }) => {
   return (
-    <div className="glass-card rounded-3xl p-5 mb-5 border border-rose-100/70">
+    <div className="glass-card rounded-3xl p-5 mb-5 border border-rose-100/80 shadow-[0_8px_24px_-4px_rgba(251,113,133,0.08)]">
       {/* Header */}
       <div className="flex justify-between items-center mb-3">
         <div>
-          <div className="text-xs font-semibold text-rose-900/60 uppercase tracking-wider">
+          <div className="text-xs font-medium text-rose-900/70">
             近 7 日消費走勢
           </div>
-          <div className="font-display font-extrabold text-xl text-rose-950 mt-0.5">
-            {formatCurrency(totalWeekly)}
+          <div className="flex items-baseline gap-1 mt-0.5">
+            <span className="text-xs font-bold text-rose-800/80 font-display">NT$</span>
+            <span className="font-display font-extrabold text-2xl text-rose-950 tracking-tight leading-none">
+              {formatNumber(totalWeekly)}
+            </span>
           </div>
         </div>
-        <div className="flex items-center space-x-1 text-[11px] font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
+        <div className="flex items-center space-x-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50/90 px-2.5 py-1 rounded-full border border-emerald-200/60 shadow-2xs">
           <TrendingUp className="w-3.5 h-3.5" />
           <span>花費平穩</span>
         </div>
@@ -42,8 +45,8 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({
           <AreaChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
             <defs>
               <linearGradient id="pinkTrendGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#FB7185" stopOpacity={0.45} />
-                <stop offset="60%" stopColor="#F43F5E" stopOpacity={0.12} />
+                <stop offset="0%" stopColor="#FB7185" stopOpacity={0.4} />
+                <stop offset="60%" stopColor="#F43F5E" stopOpacity={0.08} />
                 <stop offset="100%" stopColor="#FFF0F5" stopOpacity={0.0} />
               </linearGradient>
             </defs>
@@ -59,9 +62,9 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({
                 if (active && payload && payload.length) {
                   const item = payload[0].payload;
                   return (
-                    <div className="bg-rose-950/90 backdrop-blur-md text-white text-xs py-1.5 px-3 rounded-2xl shadow-lg border border-rose-400/30">
-                      <div className="text-[10px] text-rose-200">{item.fullDate}</div>
-                      <div className="font-display font-bold text-sm text-white">
+                    <div className="glass-card bg-white/95 backdrop-blur-xl py-1.5 px-3 rounded-2xl shadow-[0_8px_20px_-4px_rgba(244,63,94,0.2)] border border-rose-200/80">
+                      <div className="text-[10px] font-medium text-rose-700/80">{item.fullDate}</div>
+                      <div className="font-display font-bold text-sm text-rose-950 tracking-tight mt-0.5">
                         {formatCurrency(item.amount)}
                       </div>
                     </div>
@@ -74,14 +77,14 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({
               type="monotone"
               dataKey="amount"
               stroke="#F43F5E"
-              strokeWidth={3}
+              strokeWidth={2.5}
               fillOpacity={1}
               fill="url(#pinkTrendGradient)"
               activeDot={{
-                r: 6,
+                r: 5,
                 fill: '#FFFFFF',
                 stroke: '#E11D48',
-                strokeWidth: 3,
+                strokeWidth: 2.5,
               }}
             />
           </AreaChart>
@@ -90,3 +93,4 @@ export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({
     </div>
   );
 };
+
