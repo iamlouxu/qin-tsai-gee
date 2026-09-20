@@ -26,8 +26,8 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['Plus Jakarta Sans', 'Noto Sans TC', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        display: ['Outfit', 'Plus Jakarta Sans', 'sans-serif'],
+        sans: ['DM Sans', 'Noto Sans TC', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        display: ['Bricolage Grotesque', 'DM Sans', 'sans-serif'],
       },
       borderRadius: {
         '2xl': '16px',
