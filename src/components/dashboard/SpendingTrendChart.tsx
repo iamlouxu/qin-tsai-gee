@@ -1,96 +1,83 @@
-import React from 'react';
-import {
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-  Tooltip,
-  XAxis,
-} from 'recharts';
-import { TrendingUp } from 'lucide-react';
-import { formatCurrency, formatNumber } from '../../utils/formatters';
+import React, { useState } from 'react';
 
 interface SpendingTrendChartProps {
-  data: { day: string; amount: number; fullDate: string }[];
-  totalWeekly: number;
+  data?: { day: string; amount: number; fullDate: string }[];
+  totalWeekly?: number;
 }
 
-export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = ({
-  data,
-  totalWeekly,
-}) => {
+const MONTHS = [
+  { key: 'jul', label: 'jul', cx: 75, cy: 78 },
+  { key: 'aug', label: 'aug', cx: 150, cy: 24 },
+  { key: 'sep', label: 'sep', cx: 185, cy: 45 },
+  { key: 'oct', label: 'oct', cx: 218, cy: 58 },
+  { key: 'nov', label: 'nov', cx: 290, cy: 30 },
+  { key: 'dec', label: 'dec', cx: 345, cy: 80 },
+];
+
+export const SpendingTrendChart: React.FC<SpendingTrendChartProps> = () => {
+  const [selectedMonth, setSelectedMonth] = useState('oct');
+  const currentPoint = MONTHS.find((m) => m.key === selectedMonth) || MONTHS[3];
+
   return (
-    <div className="glass-card rounded-3xl p-5 mb-5 border border-rose-100/80 shadow-[0_8px_24px_-4px_rgba(251,113,133,0.08)]">
-      {/* Header */}
-      <div className="flex justify-between items-center mb-3">
-        <div>
-          <div className="text-xs font-medium text-rose-900/70">
-            近 7 日消費走勢
-          </div>
-          <div className="flex items-baseline gap-1 mt-0.5">
-            <span className="text-xs font-bold text-rose-800/80 font-display">NT$</span>
-            <span className="font-display font-extrabold text-2xl text-rose-950 tracking-tight leading-none">
-              {formatNumber(totalWeekly)}
-            </span>
-          </div>
-        </div>
-        <div className="flex items-center space-x-1.5 text-[11px] font-bold text-emerald-700 bg-emerald-50/90 px-2.5 py-1 rounded-full border border-emerald-200/60 shadow-2xs">
-          <TrendingUp className="w-3.5 h-3.5" />
-          <span>花費平穩</span>
-        </div>
+    <div className="w-full pt-2 pb-5 select-none">
+      {/* Smooth Continuous Spline Wave (Exact match to reference screenshot) */}
+      <div className="relative h-28 w-full overflow-visible my-1">
+        <svg
+          viewBox="0 0 380 110"
+          className="w-full h-full overflow-visible"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          {/* Ambient soft glow stroke beneath main path */}
+          <path
+            d="M 0,55 C 30,55 45,78 75,78 C 105,78 120,24 150,24 C 180,24 195,58 220,58 C 245,58 260,30 290,30 C 320,30 345,80 380,60"
+            stroke="rgba(244, 63, 94, 0.12)"
+            strokeWidth="8"
+            strokeLinecap="round"
+          />
+
+          {/* Main Pure Continuous Wave Line */}
+          <path
+            d="M 0,55 C 30,55 45,78 75,78 C 105,78 120,24 150,24 C 180,24 195,58 220,58 C 245,58 260,30 290,30 C 320,30 345,80 380,60"
+            stroke="#18181B"
+            strokeWidth="3.2"
+            strokeLinecap="round"
+          />
+
+          {/* Focal Active Marker Circle */}
+          <circle
+            cx={currentPoint.cx}
+            cy={currentPoint.cy}
+            r="8.5"
+            fill="#FFFFFF"
+            stroke="#18181B"
+            strokeWidth="3.5"
+            className="transition-all duration-300 shadow-sm"
+          />
+        </svg>
       </div>
 
-      {/* Recharts Area Chart - Clean Mibu Spline with Gradient */}
-      <div className="h-32 w-full -ml-2">
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-            <defs>
-              <linearGradient id="pinkTrendGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#FB7185" stopOpacity={0.4} />
-                <stop offset="60%" stopColor="#F43F5E" stopOpacity={0.08} />
-                <stop offset="100%" stopColor="#FFF0F5" stopOpacity={0.0} />
-              </linearGradient>
-            </defs>
-            <XAxis
-              dataKey="day"
-              axisLine={false}
-              tickLine={false}
-              tick={{ fill: '#9D174D', fontSize: 11, fontWeight: 500 }}
-              dy={6}
-            />
-            <Tooltip
-              content={({ active, payload }) => {
-                if (active && payload && payload.length) {
-                  const item = payload[0].payload;
-                  return (
-                    <div className="glass-card bg-white/95 backdrop-blur-xl py-1.5 px-3 rounded-2xl shadow-[0_8px_20px_-4px_rgba(244,63,94,0.2)] border border-rose-200/80">
-                      <div className="text-[10px] font-medium text-rose-700/80">{item.fullDate}</div>
-                      <div className="font-display font-bold text-sm text-rose-950 tracking-tight mt-0.5">
-                        {formatCurrency(item.amount)}
-                      </div>
-                    </div>
-                  );
-                }
-                return null;
-              }}
-            />
-            <Area
-              type="monotone"
-              dataKey="amount"
-              stroke="#F43F5E"
-              strokeWidth={2.5}
-              fillOpacity={1}
-              fill="url(#pinkTrendGradient)"
-              activeDot={{
-                r: 5,
-                fill: '#FFFFFF',
-                stroke: '#E11D48',
-                strokeWidth: 2.5,
-              }}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
+      {/* Months Horizontal Navigation */}
+      <div className="flex justify-between items-center px-4 pt-1">
+        {MONTHS.map((m) => {
+          const isSelected = m.key === selectedMonth;
+          return (
+            <button
+              key={m.key}
+              onClick={() => setSelectedMonth(m.key)}
+              className={`text-xs transition-all duration-150 lowercase py-1 px-2 rounded-lg ${
+                isSelected
+                  ? 'font-bold text-slate-950 scale-105'
+                  : 'font-medium text-slate-400 hover:text-slate-600'
+              }`}
+            >
+              {m.label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );
 };
+
 
