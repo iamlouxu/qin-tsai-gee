@@ -64,11 +64,11 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onAddClick }) => {
       <nav className="glass-nav rounded-3xl py-1.5 px-3 flex justify-around items-center shadow-soft-pink border border-white/90">
         {leftTabs.map(renderTab)}
 
-        {/* Center Prominent Add Button matching reference screenshot */}
+        {/* Center Prominent Add Button in Project Pink */}
         <button
           onClick={onAddClick}
           aria-label="快速記帳"
-          className="w-11 h-11 rounded-full bg-slate-950 hover:bg-slate-800 text-white flex items-center justify-center shadow-md active:scale-90 transition-all duration-150 mx-1 border border-white/30 shrink-0"
+          className="w-11 h-11 rounded-full bg-gradient-to-tr from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white flex items-center justify-center shadow-[0_6px_20px_rgba(244,63,94,0.4)] active:scale-90 transition-all duration-150 mx-1 border border-white/50 shrink-0"
         >
           <Plus className="w-5 h-5 stroke-[2.8]" />
         </button>

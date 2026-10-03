@@ -90,21 +90,18 @@ export const TransactionList: React.FC<TransactionListProps> = ({
 
           return (
             <div key={date} className="space-y-1">
-              {/* Date Header & Subtotal matching screenshot: "today   -$308.89" */}
-              <div className="flex justify-between items-baseline text-xs text-slate-400 font-medium px-1">
+              {/* Date Header & Subtotal */}
+              <div className="flex justify-between items-baseline text-xs text-slate-400 font-semibold px-1 mb-2">
                 <span className="lowercase">{isToday ? 'today' : formatDateDisplay(date)}</span>
                 {dayTotalExpense > 0 && (
-                  <span className="font-display font-medium text-slate-500">
+                  <span className="font-display font-semibold text-slate-500">
                     -{formatCurrency(dayTotalExpense)}
                   </span>
                 )}
               </div>
 
-              {/* Clean Thin Divider Line under date */}
-              <div className="w-full border-b border-slate-200/90 pt-0.5 pb-1 mb-2" />
-
-              {/* Unboxed Clean Rows without thick cards */}
-              <div className="space-y-1">
+              {/* MONOX-style Independent Rounded White Cards */}
+              <div className="space-y-2.5">
                 {items.map((tx) => {
                   const emoji = categoryEmojiMap[tx.category?.id];
                   const IconComponent = iconMap[tx.category?.iconName] || ReceiptText;
@@ -114,16 +111,16 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                   return (
                     <div
                       key={tx.id}
-                      className="flex items-center justify-between py-2 px-1 hover:bg-white/50 rounded-2xl transition-all duration-150 active:scale-[0.985] cursor-pointer"
+                      className="bg-white rounded-2xl p-3.5 px-4 border border-slate-100/90 shadow-[0_2px_10px_rgba(0,0,0,0.02)] hover:shadow-[0_4px_16px_rgba(0,0,0,0.04)] flex items-center justify-between transition-all duration-150 active:scale-[0.985] cursor-pointer"
                     >
-                      {/* Left: Icon/Emoji & Title/Subtitle */}
+                      {/* Left: Icon Container (Squircle) & Title/Subtitle */}
                       <div className="flex items-center space-x-3.5 overflow-hidden">
-                        <div className="w-10 h-10 rounded-2xl flex items-center justify-center shrink-0 text-2xl select-none">
+                        <div className="w-11 h-11 rounded-2xl bg-slate-50/90 border border-slate-100 flex items-center justify-center shrink-0 text-xl select-none shadow-2xs">
                           {emoji ? (
                             <span>{emoji}</span>
                           ) : (
                             <div
-                              className="w-9 h-9 rounded-xl flex items-center justify-center shadow-2xs"
+                              className="w-full h-full rounded-2xl flex items-center justify-center"
                               style={{
                                 backgroundColor: tx.category?.bgColor || '#FFE4E6',
                                 color: tx.category?.color || '#F43F5E',
@@ -135,7 +132,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         </div>
 
                         <div className="truncate">
-                          <div className="text-[15px] font-bold text-slate-900 truncate leading-tight">
+                          <div className="text-[15px] font-bold text-slate-900 truncate leading-snug">
                             {tx.category?.name || tx.note}
                           </div>
                           <div className="flex items-center space-x-1.5 mt-0.5">
@@ -143,7 +140,7 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                               {tx.note ? tx.note : tx.category.name}
                             </span>
                             {isSharedLedger && (
-                              <span className="inline-flex items-center text-[9px] font-medium text-slate-400 bg-slate-100 px-1 py-0.2 rounded">
+                              <span className="inline-flex items-center text-[10px] font-medium text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded-full">
                                 {tx.user.name.split(' ')[0]}
                               </span>
                             )}
@@ -151,22 +148,22 @@ export const TransactionList: React.FC<TransactionListProps> = ({
                         </div>
                       </div>
 
-                      {/* Right: Clean Amount Display matching screenshot */}
+                      {/* Right: Clean & Bold Amount Display */}
                       <div className="text-right shrink-0 pl-3">
                         <div
-                          className={`font-display font-bold text-[15px] leading-tight tracking-tight ${
+                          className={`font-display font-bold text-base leading-tight tracking-tight ${
                             isExpense
                               ? 'text-slate-900'
                               : isDeposit
                               ? 'text-pink-600 font-extrabold'
-                              : 'text-emerald-600'
+                              : 'text-emerald-600 font-extrabold'
                           }`}
                         >
                           {isExpense ? '-' : '+'}
                           {formatCurrency(tx.amount)}
                         </div>
                         {isDeposit && (
-                          <div className="text-[9px] font-bold text-pink-500 mt-0.5">
+                          <div className="text-[10px] font-bold text-pink-500 mt-0.5">
                             💍 存入基金
                           </div>
                         )}
