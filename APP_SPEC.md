@@ -9,7 +9,7 @@
 * **產品名稱**：**沁菜記 (Qin Tsai Gee)**
 * **產品形態**：**Mobile-First 響應式 Web App**（支援手機瀏覽器全螢幕體驗、PWA 離線安裝、桌面瀏覽器自動以 430px 手機比例置中呈現）。
 * **核心定位**：取自「青菜記」台語諧音，象徵無壓力、隨手輕鬆記帳，結合 Mibu 極簡視覺與數據分析的粉色系個人財務管理工具。
-* **設計風格與視覺參考**：參考 Dribbble [Mibu - Budget Expense Tracker & Finance App Design (by Girish)](https://dribbble.com/shots/23882234-Mibu-Budget-Expense-Tracker-Finance-App-Design) 之極簡無框線排版、大字級財務指標與懸浮膠囊佈局，並融入粉紅沉浸主題色系。
+* **設計風格與視覺參考**：融合 Dribbble [Mibu - Budget Expense Tracker & Finance App Design (by Girish)](https://dribbble.com/shots/23882234-Mibu-Budget-Expense-Tracker-Finance-App-Design) 之極簡財務指標與粉紅沉浸主題，以及 [MONOX - AI Finances Coach (by Alex Madyar)](https://dribbble.com/shots/27600112-MONOX-AI-Finances-Coach) 之實體圓角白底卡片、規格化圖標容器與 iOS 原生理性字體排版。
 
 ### 🎨 設計系統 Tokens：粉紅沉浸主題 (Pink Immersion Theme)
 遵循現代 UI/UX 色彩與無障礙規範，讓整個頁面呈現一眼即識的精緻粉紅視覺：
@@ -26,13 +26,14 @@
    * **Income (收入標示)**：`#059669` (翡翠綠，高對比易讀)。
    * **Card Border & Dividers**：`#FBCFE8` (Pink-200 / 50%) 柔粉微邊線。
 2. **排版系統 (Typography)**：
-   * **英文與數字**：`Plus Jakarta Sans` / `Outfit` (加粗現代金融大字級)。
-   * **中文字體**：`Noto Sans TC` (繁體中文最清晰)。
-   * **階層尺度**：Display 32px (總餘額)、H1 20px、Body 15px、Caption 12px。
+   * **英文與數字（UI & Metrics）**：`Inter` / `-apple-system` / `SF Pro`（現代 iOS 原生與頂級 Fintech 極簡無襯線，字重 400~800，高 x-height 與精確 tabular-nums 數字對齊，參考 MONOX 設計規範）。
+   * **中文字體（繁體中文）**：`PingFang TC`（蘋果蘋方）與 `Noto Sans TC`（思源黑體），提供中英數字混排時最佳的筆劃平衡與字形穩定度。
+   * **階層尺度**：Display 32~36px (總餘額大數字)、H1 20px、Body 15px、Caption 12px、Micro 10~11px。
 3. **組件與互動規範 (UX & Interaction Standards)**：
-   * **圓角尺度**：大圓角卡片 `rounded-3xl` (24px)。
+   * **收支明細卡片**：採用 MONOX 風格實體白底圓角卡片（`rounded-2xl`，`bg-white` 搭配極致柔和陰影與淡邊線），圖標皆具備規格統一的微灰圓角底座（Icon Squircle Container）。
+   * **圓角尺度**：大圓角卡片 `rounded-3xl` (24px)、項目卡片 `rounded-2xl` (16px)。
    * **觸控熱區**：所有按鈕與可點擊元素嚴格維持 **>= 44x44px** (Tab 項目 >= 48px)。
-   * **圖示規範**：使用專業 **Lucide SVG 圖示**（不以 Emoji 作為 UI 功能圖示）。
+   * **圖示規範**：使用專業 **Lucide SVG 圖示** 與高質感類別 Emoji 容器。
    * **動效反饋**：微互動過渡時間 `150ms ~ 250ms ease-out`，Active 狀態輕微縮放 `scale(0.97)`。
    * **視窗安全區**：適配 iOS Safe Area (`env(safe-area-inset-top)` / `env(safe-area-inset-bottom)`)。
    * **寬度約束**：最大寬度限制在 **430px** 手機比例，桌面瀏覽器下居中並附帶精緻外框與粉色光暈。

@@ -26,8 +26,8 @@ export default {
         }
       },
       fontFamily: {
-        sans: ['DM Sans', 'Noto Sans TC', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
-        display: ['Bricolage Grotesque', 'DM Sans', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'PingFang TC', 'Noto Sans TC', 'sans-serif'],
+        display: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'PingFang TC', 'Noto Sans TC', 'sans-serif'],
       },
       borderRadius: {
         '2xl': '16px',
