@@ -10,6 +10,7 @@ import { TransactionList } from './components/dashboard/TransactionList';
 import { QuickAddDrawer } from './components/modal/QuickAddDrawer';
 import { AnalyticsView } from './components/analytics/AnalyticsView';
 import { GoalsView } from './components/goals/GoalsView';
+import { SettingsView } from './components/settings/SettingsView';
 import { initialLedgers, initialTransactions, currentUser } from './data/mockData';
 import { Ledger, Transaction } from './types';
 
@@ -227,6 +228,24 @@ export function App() {
                 onUpdateLedgerBudget={handleUpdateLedgerBudget}
               />
             </>
+          }
+        />
+
+        {/* 4. Settings / Profile Route */}
+        <Route
+          path="/settings"
+          element={
+            <SettingsView
+              currentLedger={currentLedger}
+              ledgers={ledgers}
+              onSelectLedger={setCurrentLedger}
+              transactions={transactions}
+              onResetData={() => {
+                setTransactions(initialTransactions);
+                setLedgers(initialLedgers);
+                setCurrentLedger(initialLedgers[0]);
+              }}
+            />
           }
         />
 
