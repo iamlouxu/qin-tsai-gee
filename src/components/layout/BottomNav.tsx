@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, PieChart, Target, Settings, Plus } from 'lucide-react';
+import { Home, ChartNoAxesColumn, Target, Settings, Plus } from 'lucide-react';
 
 export type NavTab = 'home' | 'analytics' | 'goals' | 'settings';
 
@@ -21,7 +21,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onAddClick }) => {
 
   const leftTabs: NavTabItem[] = [
     { id: 'home', path: '/', label: '總覽', icon: Home },
-    { id: 'analytics', path: '/analytics', label: '統計', icon: PieChart },
+    { id: 'analytics', path: '/analytics', label: '統計分析', icon: ChartNoAxesColumn },
   ];
 
   const rightTabs: NavTabItem[] = [
@@ -40,21 +40,21 @@ export const BottomNav: React.FC<BottomNavProps> = ({ onAddClick }) => {
       <button
         key={tab.id}
         onClick={() => navigate(tab.path)}
-        className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-2xl transition-all duration-200 min-w-[48px] relative ${
+        aria-label={tab.label}
+        className={`flex items-center justify-center py-2.5 px-3 rounded-2xl transition-all duration-200 min-w-[44px] min-h-[44px] relative ${
           isActive
-            ? 'text-rose-600 font-bold'
-            : 'text-slate-400 hover:text-rose-400 font-medium'
+            ? 'text-rose-600'
+            : 'text-slate-400 hover:text-rose-400'
         }`}
       >
         {isActive && (
-          <span className="absolute inset-0 bg-rose-50 rounded-2xl -z-10 scale-95 border border-rose-100" />
+          <span className="absolute inset-0 bg-rose-50 rounded-2xl -z-10 scale-95 border border-rose-100 shadow-2xs" />
         )}
         <Icon
           className={`w-5 h-5 transition-transform duration-200 ${
             isActive ? 'scale-110 stroke-[2.4]' : 'stroke-[1.8]'
           }`}
         />
-        <span className="text-[10px] mt-0.5 tracking-tight">{tab.label}</span>
       </button>
     );
   };

@@ -1,33 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import {
-  PieChart as PieChartIcon,
-  TrendingUp,
-  Calendar,
-  Utensils,
-  Coffee,
-  Car,
-  ShoppingBag,
-  Film,
-  Building,
-  Camera,
-  Plane,
-  HeartHandshake,
-  Wallet,
-  Sparkles,
+  ChevronDown,
   ReceiptText,
-  ChevronRight,
-  UserCheck,
+  TrendingDown,
+  TrendingUp,
 } from 'lucide-react';
 import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
   BarChart,
   Bar,
+  Cell,
+  CartesianGrid,
   XAxis,
-  YAxis,
   Tooltip,
+  ResponsiveContainer,
 } from 'recharts';
 import { Ledger, Transaction, TransactionType } from '../../types';
 import { formatCurrency, formatDateDisplay } from '../../utils/formatters';
@@ -37,110 +22,104 @@ interface AnalyticsViewProps {
   transactions: Transaction[];
 }
 
-type PeriodType = 'week' | 'month' | 'year' | 'all';
-
-const iconMap: Record<string, React.FC<{ className?: string }>> = {
-  Utensils,
-  Coffee,
-  Car,
-  ShoppingBag,
-  Film,
-  Building,
-  Camera,
-  Plane,
-  HeartHandshake,
-  Wallet,
-  Sparkles,
-};
-
-const PALETTE_COLORS = [
-  '#F43F5E', // Rose 500
-  '#FB7185', // Rose 400
-  '#EC4899', // Pink 500
-  '#F472B6', // Pink 400
-  '#8B5CF6', // Purple 500
-  '#0284C7', // Sky 600
-  '#059669', // Emerald 600
-  '#F59E0B', // Amber 500
-  '#E11D48', // Rose 600
-  '#9333EA', // Violet 600
-];
+type PeriodType = 'week' | 'month' | 'year';
 
 export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
   currentLedger,
   transactions,
 }) => {
-  const [period, setPeriod] = useState<PeriodType>('month');
   const [activeType, setActiveType] = useState<TransactionType>('expense');
+  const [period, setPeriod] = useState<PeriodType>('week');
+  const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
+  const [selectedBarIndex, setSelectedBarIndex] = useState<number>(5); // 預設週六 (Sat) 或有資料的一天
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
-  // Filter transactions by ledger
+  // 1. 篩選當前帳本的所有記錄
   const ledgerTransactions = useMemo(() => {
     return transactions.filter((t) => t.ledgerId === currentLedger.id);
   }, [transactions, currentLedger.id]);
 
-  // Filter transactions by Period
-  const periodTransactions = useMemo(() => {
-    const now = new Date();
-    return ledgerTransactions.filter((tx) => {
-      const txDate = new Date(tx.date);
-      if (period === 'week') {
-        const oneWeekAgo = new Date();
-        oneWeekAgo.setDate(now.getDate() - 7);
-        return txDate >= oneWeekAgo && txDate <= now;
-      }
-      if (period === 'month') {
-        return (
-          txDate.getFullYear() === now.getFullYear() &&
-          txDate.getMonth() === now.getMonth()
-        );
-      }
-      if (period === 'year') {
-        return txDate.getFullYear() === now.getFullYear();
-      }
-      return true; // 'all'
-    });
-  }, [ledgerTransactions, period]);
+  // 2. 依據收支型態篩選 (預設為個人支出 expense / 收入 income)
+  const typeFilteredTransactions = useMemo(() => {
+    return ledgerTransactions.filter((tx) => tx.type === activeType);
+  }, [ledgerTransactions, activeType]);
 
-  // Filter by Type (Expense / Income / Savings)
-  const filteredByType = useMemo(() => {
-    return periodTransactions.filter((tx) => {
-      if (currentLedger.type === 'shared' && activeType === 'savings_deposit') {
-        return tx.type === 'savings_deposit';
-      }
-      return tx.type === activeType;
-    });
-  }, [periodTransactions, activeType, currentLedger.type]);
+  // 3. 週長條圖資料生成 (Mon ~ Sun 7 天柱狀)
+  // 找出基準日期（取交易中最新的一筆日期或今日）
+  const chartDaysData = useMemo(() => {
+    const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const dayFullLabels = ['週一', '週二', '週三', '週四', '週五', '週六', '週日'];
 
-  // Category aggregation for Donut Chart & Breakdown List
+    // 取得最新交易日期作為參考基準週，若無則用今天
+    let refDate = new Date();
+    if (typeFilteredTransactions.length > 0) {
+      const dates = typeFilteredTransactions.map((t) => new Date(t.date).getTime());
+      refDate = new Date(Math.max(...dates));
+    }
+
+    // 計算該週週一的日期 (JS getDay(): 0 是週日, 1 是週一 ... 6 是週六)
+    const currentDayOfWeek = refDate.getDay();
+    const distanceToMonday = currentDayOfWeek === 0 ? -6 : 1 - currentDayOfWeek;
+    const monday = new Date(refDate);
+    monday.setDate(refDate.getDate() + distanceToMonday);
+
+    // 產生 Mon ~ Sun 七天的資料陣列
+    const weekDays = dayNames.map((name, index) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + index);
+      const dateStr = d.toISOString().slice(0, 10); // YYYY-MM-DD
+
+      // 計算當天金額
+      const dayTotal = typeFilteredTransactions
+        .filter((t) => t.date === dateStr)
+        .reduce((sum, t) => sum + t.amount, 0);
+
+      return {
+        day: name,
+        fullDay: dayFullLabels[index],
+        date: dateStr,
+        amount: dayTotal,
+      };
+    });
+
+    const maxVal = Math.max(...weekDays.map((d) => d.amount), 1);
+
+    return {
+      days: weekDays,
+      maxVal,
+      totalAmount: weekDays.reduce((sum, d) => sum + d.amount, 0),
+    };
+  }, [typeFilteredTransactions]);
+
+  // 如果 selectedBarIndex 超出範圍，重設為最後一天或最高的一天
+  const activeSelectedDay = chartDaysData.days[selectedBarIndex] || chartDaysData.days[0];
+
+  // 4. 分類金額統計 (2 欄卡片用)
   const categoryStats = useMemo(() => {
     const map: Record<
       string,
       {
         id: string;
         name: string;
-        color: string;
-        bgColor: string;
-        iconName: string;
         total: number;
         count: number;
+        iconName: string;
+        color: string;
       }
     > = {};
 
     let totalSum = 0;
-
-    filteredByType.forEach((tx) => {
+    typeFilteredTransactions.forEach((tx) => {
       const cat = tx.category;
       if (!cat) return;
       if (!map[cat.id]) {
         map[cat.id] = {
           id: cat.id,
           name: cat.name,
-          color: cat.color || PALETTE_COLORS[0],
-          bgColor: cat.bgColor || '#FFE4E6',
-          iconName: cat.iconName || 'ReceiptText',
           total: 0,
           count: 0,
+          iconName: cat.iconName || 'ReceiptText',
+          color: cat.color || '#F43F5E',
         };
       }
       map[cat.id].total += tx.amount;
@@ -148,142 +127,65 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       totalSum += tx.amount;
     });
 
-    const list = Object.values(map)
-      .map((item, idx) => ({
-        ...item,
-        percentage: totalSum > 0 ? (item.total / totalSum) * 100 : 0,
-        fillColor: item.color || PALETTE_COLORS[idx % PALETTE_COLORS.length],
-      }))
-      .sort((a, b) => b.total - a.total);
+    const sortedList = Object.values(map).sort((a, b) => b.total - a.total);
 
-    return { list, totalSum };
-  }, [filteredByType]);
+    // 取前 5 大類別，其餘歸類為 Other
+    if (sortedList.length <= 6) {
+      return sortedList;
+    }
 
-  // Partner stats (for shared ledger)
-  const partnerStats = useMemo(() => {
-    if (currentLedger.type !== 'shared') return null;
+    const top5 = sortedList.slice(0, 5);
+    const others = sortedList.slice(5);
+    const otherTotal = others.reduce((sum, item) => sum + item.total, 0);
+    const otherCount = others.reduce((sum, item) => sum + item.count, 0);
 
-    let userTotal = 0;
-    let partnerTotal = 0;
+    return [
+      ...top5,
+      {
+        id: 'other',
+        name: '其他分類',
+        total: otherTotal,
+        count: otherCount,
+        iconName: 'ReceiptText',
+        color: '#94A3B8',
+      },
+    ];
+  }, [typeFilteredTransactions]);
 
-    filteredByType.forEach((tx) => {
-      if (tx.userId === currentLedger.members[0]?.id) {
-        userTotal += tx.amount;
-      } else {
-        partnerTotal += tx.amount;
-      }
-    });
-
-    const sum = userTotal + partnerTotal;
-    const userPct = sum > 0 ? Math.round((userTotal / sum) * 100) : 50;
-    const partnerPct = sum > 0 ? 100 - userPct : 50;
-
-    return {
-      userTotal,
-      partnerTotal,
-      userPct,
-      partnerPct,
-      userName: currentLedger.members[0]?.name || '本人',
-      partnerName: currentLedger.members[1]?.name || '伴侶',
-    };
-  }, [filteredByType, currentLedger]);
-
-  // Highest transaction & daily average
-  const maxTx = useMemo(() => {
-    if (filteredByType.length === 0) return null;
-    return [...filteredByType].sort((a, b) => b.amount - a.amount)[0];
-  }, [filteredByType]);
-
-  const dailyAvg = useMemo(() => {
-    const days = period === 'week' ? 7 : period === 'month' ? 30 : 365;
-    return Math.round(categoryStats.totalSum / days);
-  }, [categoryStats.totalSum, period]);
-
-  // Daily trend bar chart data (last 7 days or recent distribution)
-  const barChartData = useMemo(() => {
-    const dateMap: Record<string, number> = {};
-    filteredByType.forEach((tx) => {
-      const label = tx.date.slice(5); // MM-DD
-      dateMap[label] = (dateMap[label] || 0) + tx.amount;
-    });
-
-    return Object.keys(dateMap)
-      .sort()
-      .slice(-7)
-      .map((date) => ({
-        date,
-        amount: dateMap[date],
-      }));
-  }, [filteredByType]);
-
-  // Detail transactions for selected category
-  const activeCategoryTransactions = useMemo(() => {
+  // 當前選中分類之明細
+  const filteredCategoryTransactions = useMemo(() => {
     if (!selectedCategory) return [];
-    return filteredByType.filter((tx) => tx.categoryId === selectedCategory);
-  }, [filteredByType, selectedCategory]);
+    if (selectedCategory === 'other') {
+      const top5Ids = categoryStats.slice(0, 5).map((c) => c.id);
+      return typeFilteredTransactions.filter((tx) => !top5Ids.includes(tx.categoryId));
+    }
+    return typeFilteredTransactions.filter((tx) => tx.categoryId === selectedCategory);
+  }, [typeFilteredTransactions, selectedCategory, categoryStats]);
 
   return (
-    <div className="space-y-5 pb-6">
-      {/* 1. Header & Title */}
-      <div className="flex items-center justify-between pt-1 px-1">
-        <div>
-          <h1 className="text-xl font-extrabold text-rose-950 font-sans tracking-tight">
-            財務統計
-          </h1>
-          <p className="text-xs text-rose-800/60 font-medium mt-0.5">
-            {currentLedger.name} · 週期數據與消費分佈
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-1.5 px-3 py-1.5 bg-white/80 backdrop-blur-md rounded-2xl border border-rose-200/60 text-xs font-bold text-rose-800 shadow-xs">
-          <Calendar className="w-3.5 h-3.5 text-rose-500" />
-          <span>
-            {period === 'week' ? '本週' : period === 'month' ? '本月' : period === 'year' ? '本年' : '全部'}
-          </span>
-        </div>
+    <div className="space-y-4 pb-12 select-none">
+      {/* 1. 頂部導航列 (Top Bar: Centered Title) */}
+      <div className="flex items-center justify-center pt-2 pb-1 px-1">
+        <h1 className="text-base font-extrabold text-rose-950 tracking-tight font-sans">
+          財務分析
+        </h1>
       </div>
 
-      {/* 2. Period Filter Tabs */}
-      <div className="bg-rose-100/50 p-1 rounded-2xl flex items-center justify-between border border-rose-200/40">
-        {(
-          [
-            { key: 'week', label: '本週' },
-            { key: 'month', label: '本月' },
-            { key: 'year', label: '本年度' },
-            { key: 'all', label: '全部' },
-          ] as const
-        ).map((item) => (
-          <button
-            key={item.key}
-            onClick={() => {
-              setPeriod(item.key);
-              setSelectedCategory(null);
-            }}
-            className={`flex-1 py-1.5 text-xs font-bold rounded-xl transition-all duration-200 ${
-              period === item.key
-                ? 'bg-white text-rose-600 shadow-xs scale-[1.02]'
-                : 'text-slate-500 hover:text-rose-600'
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
-      </div>
-
-      {/* 3. Transaction Type Pills */}
-      <div className="flex items-center space-x-2">
+      {/* 2. 支出 / 收入 分段切換膠囊 (Expenses / Income Segmented Capsule) */}
+      <div className="bg-rose-200/40 p-1 rounded-2xl flex items-center relative backdrop-blur-md border border-rose-200/50 shadow-inner">
         <button
           onClick={() => {
             setActiveType('expense');
             setSelectedCategory(null);
           }}
-          className={`flex-1 py-2 px-3 rounded-2xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-all ${
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center space-x-1.5 ${
             activeType === 'expense'
-              ? 'bg-gradient-to-r from-rose-500 to-rose-600 text-white shadow-soft-pink'
-              : 'bg-white/80 text-rose-900/70 border border-rose-100 hover:bg-rose-50'
+              ? 'bg-white text-rose-950 shadow-sm font-extrabold scale-[1.01]'
+              : 'text-rose-900/60 hover:text-rose-950'
           }`}
         >
-          <span>支出分析</span>
+          <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
+          <span>支出 (Expenses)</span>
         </button>
 
         <button
@@ -291,380 +193,255 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
             setActiveType('income');
             setSelectedCategory(null);
           }}
-          className={`flex-1 py-2 px-3 rounded-2xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-all ${
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center space-x-1.5 ${
             activeType === 'income'
-              ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-xs'
-              : 'bg-white/80 text-rose-900/70 border border-rose-100 hover:bg-rose-50'
+              ? 'bg-white text-rose-950 shadow-sm font-extrabold scale-[1.01]'
+              : 'text-rose-900/60 hover:text-rose-950'
           }`}
         >
-          <span>收入分析</span>
+          <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
+          <span>收入 (Income)</span>
         </button>
-
-        {currentLedger.type === 'shared' && (
-          <button
-            onClick={() => {
-              setActiveType('savings_deposit');
-              setSelectedCategory(null);
-            }}
-            className={`flex-1 py-2 px-3 rounded-2xl text-xs font-bold flex items-center justify-center space-x-1.5 transition-all ${
-              activeType === 'savings_deposit'
-                ? 'bg-gradient-to-r from-pink-500 to-rose-500 text-white shadow-soft-pink'
-                : 'bg-white/80 text-rose-900/70 border border-rose-100 hover:bg-rose-50'
-            }`}
-          >
-            <span>💍 基金存入</span>
-          </button>
-        )}
       </div>
 
-      {/* 4. Total Card */}
-      <div className="bg-gradient-to-br from-[#FB7185] via-[#F43F5E] to-[#E11D48] rounded-3xl p-5 text-white shadow-[0_15px_35px_rgba(244,63,94,0.25)] relative overflow-hidden">
-        <div className="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-        <div className="flex items-center justify-between text-rose-100 text-xs font-medium mb-1">
-          <span>
-            {period === 'week' ? '本週' : period === 'month' ? '本月' : period === 'year' ? '本年度' : '全部'}
-            {activeType === 'expense' ? '總支出' : activeType === 'income' ? '總收入' : '累積存入'}
-          </span>
-          <span className="bg-white/20 px-2 py-0.5 rounded-full text-[10px] font-bold">
-            共 {filteredByType.length} 筆
-          </span>
-        </div>
-
-        <div className="font-display font-extrabold text-3xl tracking-tight my-1 text-white">
-          {formatCurrency(categoryStats.totalSum)}
-        </div>
-
-        <div className="grid grid-cols-2 gap-3 mt-4 pt-3 border-t border-white/20 text-xs">
+      {/* 3. 主趨勢卡片 (Main Analytics Card: Total, Period Switcher, Bar Chart with Tooltip) */}
+      <div className="glass-card rounded-[28px] p-5 shadow-sm border border-white/90 relative overflow-visible">
+        {/* 卡片頂部：總金額與週期下拉選單 */}
+        <div className="flex items-start justify-between mb-8">
           <div>
-            <div className="text-rose-100/80 text-[11px]">平均每日</div>
-            <div className="font-display font-bold text-sm text-white mt-0.5">
-              {formatCurrency(dailyAvg)}
+            <span className="text-[11px] font-medium text-slate-400 block mb-0.5 tracking-tight">
+              {period === 'week' ? '本週總計' : period === 'month' ? '本月總計' : '本年度總計'}
+            </span>
+            <div className="font-display font-extrabold text-3xl text-rose-950 tracking-tight">
+              {formatCurrency(chartDaysData.totalAmount)}
             </div>
           </div>
-          <div>
-            <div className="text-rose-100/80 text-[11px]">單筆最高</div>
-            <div className="font-display font-bold text-sm text-white mt-0.5 truncate">
-              {maxTx ? `${formatCurrency(maxTx.amount)} (${maxTx.category?.name || '無'})` : 'NT$ 0'}
-            </div>
+
+          {/* 週期下拉按鈕 */}
+          <div className="relative">
+            <button
+              onClick={() => setIsPeriodDropdownOpen(!isPeriodDropdownOpen)}
+              className="flex items-center space-x-1.5 bg-rose-50 hover:bg-rose-100/70 border border-rose-200/80 px-3 py-1.5 rounded-full text-xs font-bold text-rose-900 shadow-2xs active:scale-95 transition-all"
+            >
+              <span>{period === 'week' ? '週 (Week)' : period === 'month' ? '月 (Month)' : '年 (Year)'}</span>
+              <ChevronDown className={`w-3.5 h-3.5 text-rose-500 transition-transform duration-200 ${isPeriodDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* 下拉選單 */}
+            {isPeriodDropdownOpen && (
+              <div className="absolute right-0 top-full mt-1.5 w-28 bg-white/95 backdrop-blur-md rounded-2xl shadow-xl border border-rose-100 py-1.5 z-30 animate-in fade-in zoom-in-95 duration-150">
+                {(
+                  [
+                    { key: 'week', label: '週 (Week)' },
+                    { key: 'month', label: '月 (Month)' },
+                    { key: 'year', label: '年 (Year)' },
+                  ] as const
+                ).map((p) => (
+                  <button
+                    key={p.key}
+                    onClick={() => {
+                      setPeriod(p.key);
+                      setIsPeriodDropdownOpen(false);
+                    }}
+                    className={`w-full text-left px-3.5 py-1.5 text-xs font-bold transition-colors ${
+                      period === p.key ? 'text-rose-600 bg-rose-50/80' : 'text-slate-600 hover:bg-rose-50/50'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* 柱狀長條圖區域 (shadcn BarChart Default Style with CartesianGrid & Click-to-highlight) */}
+        <div className="pt-2 pb-1">
+          <div className="h-48 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartDaysData.days}
+                margin={{ top: 28, right: 4, left: 4, bottom: 0 }}
+                onClick={(state) => {
+                  if (state && state.activeTooltipIndex !== undefined) {
+                    setSelectedBarIndex(state.activeTooltipIndex);
+                  }
+                }}
+              >
+                {/* shadcn 標誌性的水平細格線 */}
+                <CartesianGrid
+                  vertical={false}
+                  stroke="#FCE7F3"
+                  strokeDasharray="3 3"
+                />
+
+                <XAxis
+                  dataKey="day"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={12}
+                  tick={({ x, y, payload, index }) => {
+                    const isSelected = selectedBarIndex === index;
+                    return (
+                      <text
+                        x={x}
+                        y={y}
+                        textAnchor="middle"
+                        className={`text-[11px] select-none transition-colors duration-150 ${
+                          isSelected
+                            ? 'fill-rose-950 font-extrabold'
+                            : 'fill-slate-400 font-medium'
+                        }`}
+                      >
+                        {payload.value}
+                      </text>
+                    );
+                  }}
+                />
+
+                <Tooltip
+                  cursor={false}
+                  content={({ active, payload }) => {
+                    if (active && payload && payload.length) {
+                      const data = payload[0].payload;
+                      return (
+                        <div className="bg-rose-950 text-white font-display font-extrabold text-[11px] px-2.5 py-1 rounded-xl shadow-lg shadow-rose-950/20 whitespace-nowrap flex items-center space-x-1 -translate-y-2 animate-in fade-in zoom-in-95 duration-100">
+                          <span>{formatCurrency(data.amount)}</span>
+                        </div>
+                      );
+                    }
+                    return null;
+                  }}
+                />
+
+                <Bar
+                  dataKey="amount"
+                  radius={[10, 10, 8, 8]}
+                  barSize={32}
+                  className="cursor-pointer"
+                >
+                  {chartDaysData.days.map((_entry, index) => {
+                    const isSelected = selectedBarIndex === index;
+                    return (
+                      <Cell
+                        key={`bar-cell-${index}`}
+                        fill={isSelected ? '#F43F5E' : '#E2E8F0'}
+                        className="transition-colors duration-200"
+                        onClick={() => setSelectedBarIndex(index)}
+                      />
+                    );
+                  })}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* 選取天數之微提示 */}
+          <div className="mt-2 pt-3 border-t border-rose-100/60 flex items-center justify-between text-[11px] text-slate-400">
+            <span>
+              已選中：<strong className="text-rose-950 font-bold">{activeSelectedDay.fullDay} ({activeSelectedDay.date})</strong>
+            </span>
+            <span className="font-display font-bold text-rose-600">
+              {formatCurrency(activeSelectedDay.amount)}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* 5. Donut Chart (分類佔比圓環) */}
-      <div className="glass-card rounded-3xl p-5 shadow-sm border border-white/80">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600">
-              <PieChartIcon className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-rose-950">分類分佈佔比</h2>
-              <p className="text-[10px] text-slate-400">點擊環狀區塊可快速篩選</p>
-            </div>
-          </div>
-
+      {/* 4. 分類卡片 2 欄網格 (2-Column Category Grid) */}
+      <div className="space-y-2.5 pt-1">
+        <div className="flex items-center justify-between px-1">
+          <h2 className="text-xs font-extrabold text-rose-950 uppercase tracking-wider">
+            分類排行 (Categories)
+          </h2>
           {selectedCategory && (
             <button
               onClick={() => setSelectedCategory(null)}
-              className="text-[11px] text-rose-600 font-bold bg-rose-50 px-2.5 py-1 rounded-xl border border-rose-200 hover:bg-rose-100"
+              className="text-[11px] text-rose-600 font-bold hover:underline"
             >
               清除篩選
             </button>
           )}
         </div>
 
-        {categoryStats.list.length === 0 ? (
-          <div className="py-12 text-center text-slate-400">
-            <ReceiptText className="w-10 h-10 mx-auto mb-2 text-rose-200 stroke-[1.5]" />
-            <p className="text-xs font-medium">該期間尚無此類型的收支記錄</p>
+        {categoryStats.length === 0 ? (
+          <div className="glass-card rounded-2xl p-8 text-center text-slate-400">
+            <ReceiptText className="w-8 h-8 mx-auto mb-2 text-rose-200" />
+            <p className="text-xs">尚無相關分類收支記錄</p>
           </div>
         ) : (
-          <div className="flex flex-col items-center">
-            <div className="w-full h-56 relative flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={categoryStats.list}
-                    dataKey="total"
-                    nameKey="name"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={58}
-                    outerRadius={88}
-                    paddingAngle={3}
-                    onClick={(entry) =>
-                      setSelectedCategory(selectedCategory === entry.id ? null : entry.id)
-                    }
-                  >
-                    {categoryStats.list.map((entry) => (
-                      <Cell
-                        key={`cell-${entry.id}`}
-                        fill={entry.fillColor}
-                        stroke="#FFF"
-                        strokeWidth={selectedCategory === entry.id ? 3 : 1}
-                        className="cursor-pointer transition-all duration-200 hover:opacity-80"
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: any) => [
-                      formatCurrency(Number(value) || 0),
-                      '金額',
-                    ]}
-                    contentStyle={{
-                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                      borderRadius: '16px',
-                      border: '1px solid #FFE4E6',
-                      boxShadow: '0 8px 20px rgba(244, 63, 94, 0.15)',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: '#831843',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+          <div className="grid grid-cols-2 gap-3">
+            {categoryStats.map((cat) => {
+              const isSelected = selectedCategory === cat.id;
 
-              {/* Center Donut Label */}
-              <div className="absolute flex flex-col items-center pointer-events-none text-center">
-                <span className="text-[10px] text-slate-400 font-medium">
-                  {selectedCategory
-                    ? categoryStats.list.find((c) => c.id === selectedCategory)?.name
-                    : '總計'}
-                </span>
-                <span className="text-sm font-display font-extrabold text-rose-950">
-                  {selectedCategory
-                    ? formatCurrency(
-                        categoryStats.list.find((c) => c.id === selectedCategory)?.total || 0
-                      )
-                    : formatCurrency(categoryStats.totalSum)}
-                </span>
-              </div>
-            </div>
+              return (
+                <div
+                  key={cat.id}
+                  onClick={() =>
+                    setSelectedCategory(selectedCategory === cat.id ? null : cat.id)
+                  }
+                  className={`glass-card rounded-2xl p-4 transition-all duration-200 cursor-pointer active:scale-97 border text-left flex flex-col justify-between h-[92px] ${
+                    isSelected
+                      ? 'ring-2 ring-rose-500 bg-rose-50/90 border-rose-300 shadow-md'
+                      : 'hover:bg-white border-white/80'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-medium text-slate-500 truncate">
+                      {cat.name}
+                    </span>
+                    <span className="text-[10px] text-slate-400">
+                      {cat.count}筆
+                    </span>
+                  </div>
+
+                  <div className="font-display font-extrabold text-base text-rose-950 tracking-tight">
+                    {formatCurrency(cat.total)}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* 6. Partner Breakdown (結婚共同帳本專屬) */}
-      {partnerStats && (
-        <div className="glass-card rounded-3xl p-5 shadow-sm border border-white/80">
-          <div className="flex items-center justify-between mb-3">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-xl bg-pink-100 flex items-center justify-center text-pink-600">
-                <UserCheck className="w-4 h-4" />
-              </div>
-              <h2 className="text-sm font-bold text-rose-950">情侶貢獻對比</h2>
-            </div>
-            <span className="text-[11px] font-bold text-rose-600">
-              💍 共同帳本
-            </span>
-          </div>
-
-          <div className="space-y-2">
-            {/* Progress Bar */}
-            <div className="h-3 w-full bg-rose-100 rounded-full overflow-hidden flex shadow-inner">
-              <div
-                className="bg-gradient-to-r from-rose-500 to-rose-400 h-full transition-all duration-500"
-                style={{ width: `${partnerStats.userPct}%` }}
-              />
-              <div
-                className="bg-gradient-to-r from-pink-400 to-pink-300 h-full transition-all duration-500"
-                style={{ width: `${partnerStats.partnerPct}%` }}
-              />
-            </div>
-
-            {/* Member Details */}
-            <div className="flex justify-between items-center text-xs pt-1">
-              <div className="flex items-center space-x-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-                <span className="font-bold text-rose-950">{partnerStats.userName}</span>
-                <span className="text-slate-400">
-                  ({partnerStats.userPct}%) · {formatCurrency(partnerStats.userTotal)}
-                </span>
-              </div>
-
-              <div className="flex items-center space-x-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-pink-400" />
-                <span className="font-bold text-rose-950">{partnerStats.partnerName}</span>
-                <span className="text-slate-400">
-                  ({partnerStats.partnerPct}%) · {formatCurrency(partnerStats.partnerTotal)}
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 7. Bar Chart (趨勢分佈) */}
-      {barChartData.length > 0 && (
-        <div className="glass-card rounded-3xl p-5 shadow-sm border border-white/80">
-          <div className="flex items-center space-x-2 mb-3">
-            <div className="w-8 h-8 rounded-xl bg-rose-100 flex items-center justify-center text-rose-600">
-              <TrendingUp className="w-4 h-4" />
-            </div>
-            <div>
-              <h2 className="text-sm font-bold text-rose-950">近 7 日花費柱狀圖</h2>
-              <p className="text-[10px] text-slate-400">每日消費變化曲線</p>
-            </div>
-          </div>
-
-          <div className="h-40 w-full pt-2">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={barChartData} margin={{ top: 10, right: 0, left: -25, bottom: 0 }}>
-                <XAxis
-                  dataKey="date"
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 10, fill: '#888' }}
-                />
-                <YAxis
-                  tickLine={false}
-                  axisLine={false}
-                  tick={{ fontSize: 10, fill: '#888' }}
-                  tickFormatter={(val) => `$${val}`}
-                />
-                <Tooltip
-                  formatter={(val: any) => [
-                    formatCurrency(Number(val) || 0),
-                    '金額',
-                  ]}
-                  contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    borderRadius: '12px',
-                    border: '1px solid #FFE4E6',
-                    fontSize: '11px',
-                  }}
-                />
-                <Bar
-                  dataKey="amount"
-                  fill="#F43F5E"
-                  radius={[6, 6, 0, 0]}
-                  barSize={18}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      )}
-
-      {/* 8. Category Ranking List (分類排行) */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm font-bold text-rose-950 font-sans tracking-tight">
-            分類排行排行榜
-          </h2>
-          <span className="text-[11px] text-slate-400 font-medium">
-            共 {categoryStats.list.length} 個類別
-          </span>
-        </div>
-
-        <div className="glass-card rounded-3xl p-3 space-y-2 divide-y divide-rose-100/50">
-          {categoryStats.list.map((cat, index) => {
-            const IconComponent = iconMap[cat.iconName] || ReceiptText;
-            const isSelected = selectedCategory === cat.id;
-
-            return (
-              <div
-                key={cat.id}
-                onClick={() =>
-                  setSelectedCategory(selectedCategory === cat.id ? null : cat.id)
-                }
-                className={`p-2.5 rounded-2xl transition-all cursor-pointer ${
-                  isSelected ? 'bg-rose-100/60 ring-2 ring-rose-400' : 'hover:bg-rose-50/60'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center space-x-3 overflow-hidden">
-                    {/* Rank Number */}
-                    <span
-                      className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-extrabold ${
-                        index === 0
-                          ? 'bg-amber-400 text-white'
-                          : index === 1
-                          ? 'bg-slate-300 text-slate-700'
-                          : index === 2
-                          ? 'bg-amber-700/60 text-white'
-                          : 'bg-rose-100 text-rose-600'
-                      }`}
-                    >
-                      {index + 1}
-                    </span>
-
-                    {/* Icon */}
-                    <div
-                      className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                      style={{
-                        backgroundColor: cat.bgColor || '#FFE4E6',
-                        color: cat.color || '#F43F5E',
-                      }}
-                    >
-                      <IconComponent className="w-4 h-4 stroke-[2]" />
-                    </div>
-
-                    {/* Title & Count */}
-                    <div>
-                      <span className="text-xs font-bold text-rose-950 block">
-                        {cat.name}
-                      </span>
-                      <span className="text-[10px] text-slate-400">
-                        {cat.count} 筆記錄 · {cat.percentage.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Amount */}
-                  <div className="text-right flex items-center space-x-1.5">
-                    <span className="font-display font-bold text-sm text-rose-950">
-                      {formatCurrency(cat.total)}
-                    </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-300" />
-                  </div>
-                </div>
-
-                {/* Percentage Bar */}
-                <div className="h-1.5 w-full bg-rose-100/80 rounded-full overflow-hidden">
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${cat.percentage}%`,
-                      backgroundColor: cat.fillColor,
-                    }}
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* 9. Filtered Transactions List when a category is selected */}
+      {/* 5. 點選分類卡片後展示的單筆明細清單 (Filtered Transactions Drawer/List) */}
       {selectedCategory && (
-        <div className="space-y-2 mt-4">
-          <div className="flex items-center justify-between px-1">
-            <h3 className="text-xs font-bold text-rose-900">
-              【{categoryStats.list.find((c) => c.id === selectedCategory)?.name}】明細
-            </h3>
-            <span className="text-[10px] text-slate-400">
-              {activeCategoryTransactions.length} 筆
+        <div className="glass-card rounded-3xl p-4 shadow-sm border border-white/90 space-y-2 animate-in fade-in slide-in-from-bottom-2 duration-150">
+          <div className="flex items-center justify-between border-b border-rose-100/60 pb-2.5">
+            <div className="flex items-center space-x-1.5">
+              <span className="w-2 h-2 rounded-full bg-rose-500" />
+              <h3 className="text-xs font-bold text-rose-950">
+                【{categoryStats.find((c) => c.id === selectedCategory)?.name}】近期明細
+              </h3>
+            </div>
+            <span className="text-[11px] text-slate-400">
+              共 {filteredCategoryTransactions.length} 筆
             </span>
           </div>
 
-          <div className="glass-card rounded-3xl p-3 divide-y divide-rose-100/40">
-            {activeCategoryTransactions.map((tx) => (
-              <div key={tx.id} className="py-2 flex items-center justify-between text-xs">
-                <div>
-                  <div className="font-bold text-rose-950">
-                    {tx.note || tx.category.name}
+          <div className="divide-y divide-rose-100/40 max-h-64 overflow-y-auto">
+            {filteredCategoryTransactions.length === 0 ? (
+              <p className="text-center py-4 text-xs text-slate-400">查無此類別記錄</p>
+            ) : (
+              filteredCategoryTransactions.map((tx) => (
+                <div key={tx.id} className="py-2.5 flex items-center justify-between text-xs">
+                  <div>
+                    <div className="font-bold text-rose-950">
+                      {tx.note || tx.category?.name || '無備註'}
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">
+                      {formatDateDisplay(tx.date)} · {tx.time}
+                    </div>
                   </div>
-                  <div className="text-[10px] text-slate-400 mt-0.5">
-                    {formatDateDisplay(tx.date)} · {tx.time}
-                    {currentLedger.type === 'shared' && ` · 👤 ${tx.user.name}`}
+                  <div className="text-right">
+                    <span className="font-display font-bold text-rose-600 text-sm">
+                      {formatCurrency(tx.amount)}
+                    </span>
                   </div>
                 </div>
-                <div className="font-display font-bold text-rose-600">
-                  {formatCurrency(tx.amount)}
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       )}
