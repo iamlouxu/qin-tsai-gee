@@ -2,8 +2,8 @@ import React, { useState, useMemo } from 'react';
 import {
   ChevronDown,
   ReceiptText,
-  TrendingDown,
-  TrendingUp,
+  ArrowDown,
+  ArrowUp,
 } from 'lucide-react';
 import {
   BarChart,
@@ -178,14 +178,13 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
             setActiveType('expense');
             setSelectedCategory(null);
           }}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center space-x-1.5 ${
-            activeType === 'expense'
-              ? 'bg-white text-rose-950 shadow-sm font-extrabold scale-[1.01]'
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center space-x-1.5 ${activeType === 'expense'
+              ? 'bg-white text-rose-950 shadow-sm font-extrabold'
               : 'text-rose-900/60 hover:text-rose-950'
-          }`}
+            }`}
         >
-          <TrendingDown className="w-3.5 h-3.5 text-rose-500" />
-          <span>支出 (Expenses)</span>
+          <ArrowDown className="w-3.5 h-3.5" />
+          <span>支出</span>
         </button>
 
         <button
@@ -193,14 +192,13 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
             setActiveType('income');
             setSelectedCategory(null);
           }}
-          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center space-x-1.5 ${
-            activeType === 'income'
-              ? 'bg-white text-rose-950 shadow-sm font-extrabold scale-[1.01]'
+          className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all duration-200 flex items-center justify-center space-x-1.5 ${activeType === 'income'
+              ? 'bg-white text-rose-950 shadow-sm font-extrabold'
               : 'text-rose-900/60 hover:text-rose-950'
-          }`}
+            }`}
         >
-          <TrendingUp className="w-3.5 h-3.5 text-emerald-600" />
-          <span>收入 (Income)</span>
+          <ArrowUp className="w-3.5 h-3.5" />
+          <span>收入</span>
         </button>
       </div>
 
@@ -243,9 +241,8 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                       setPeriod(p.key);
                       setIsPeriodDropdownOpen(false);
                     }}
-                    className={`w-full text-left px-3.5 py-1.5 text-xs font-bold transition-colors ${
-                      period === p.key ? 'text-rose-600 bg-rose-50/80' : 'text-slate-600 hover:bg-rose-50/50'
-                    }`}
+                    className={`w-full text-left px-3.5 py-1.5 text-xs font-bold transition-colors ${period === p.key ? 'text-rose-600 bg-rose-50/80' : 'text-slate-600 hover:bg-rose-50/50'
+                      }`}
                   >
                     {p.label}
                   </button>
@@ -287,11 +284,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                         x={x}
                         y={y}
                         textAnchor="middle"
-                        className={`text-[11px] select-none transition-colors duration-150 ${
-                          isSelected
+                        className={`text-[11px] select-none transition-colors duration-150 ${isSelected
                             ? 'fill-rose-950 font-extrabold'
                             : 'fill-slate-400 font-medium'
-                        }`}
+                          }`}
                       >
                         {payload.value}
                       </text>
@@ -352,7 +348,7 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
       <div className="space-y-2.5 pt-1">
         <div className="flex items-center justify-between px-1">
           <h2 className="text-xs font-extrabold text-rose-950 uppercase tracking-wider">
-            分類排行 (Categories)
+            各項花費明細
           </h2>
           {selectedCategory && (
             <button
@@ -380,11 +376,10 @@ export const AnalyticsView: React.FC<AnalyticsViewProps> = ({
                   onClick={() =>
                     setSelectedCategory(selectedCategory === cat.id ? null : cat.id)
                   }
-                  className={`glass-card rounded-2xl p-4 transition-all duration-200 cursor-pointer active:scale-97 border text-left flex flex-col justify-between h-[92px] ${
-                    isSelected
+                  className={`glass-card rounded-2xl p-4 transition-all duration-200 cursor-pointer active:scale-97 border text-left flex flex-col justify-between h-[92px] ${isSelected
                       ? 'ring-2 ring-rose-500 bg-rose-50/90 border-rose-300 shadow-md'
                       : 'hover:bg-white border-white/80'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-medium text-slate-500 truncate">
