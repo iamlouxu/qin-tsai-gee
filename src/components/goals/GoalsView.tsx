@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Plane,
   Lightbulb,
   Receipt,
   Plus,
@@ -11,6 +10,7 @@ import {
 import { Ledger, Transaction } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
 import { EditGoalModal } from './EditGoalModal';
+import { DepositGoalDrawer } from './DepositGoalDrawer';
 import { CategoryBudgetSection } from './CategoryBudgetSection';
 
 interface GoalsViewProps {
@@ -39,14 +39,20 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
   // Tab state: active (進行中), completed (已完成), budgets (類別預算)
   const [activeTab, setActiveTab] = useState<TabState>('active');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isDepositDrawerOpen, setIsDepositDrawerOpen] = useState(false);
   const [showAllHistory, setShowAllHistory] = useState(false);
 
   // Secondary Quick Goal state (e.g., 沖繩夏日旅行 from Stitch)
-  const [subGoal] = useState({
+  const [subGoal, setSubGoal] = useState({
     title: '沖繩夏日旅行',
     saved: 38000,
     target: 60000,
   });
+
+  // Custom added deposit history
+  const [customHistory, setCustomHistory] = useState<
+    { id: string; title: string; date: string; amount: number; type: string }[]
+  >([]);
 
   // Smart Planner slider state (1: 3個月, 2: 6個月, 3: 9個月, 4: 12個月)
   const [plannerStep, setPlannerStep] = useState<number>(2);
@@ -132,7 +138,25 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
     },
   ];
 
-  const historyItems =
+  // Handler for depositing into goal
+  const handleGoalDeposit = (depositAmount: number, depositDate: string, depositNote: string) => {
+    setSubGoal((prev) => ({
+      ...prev,
+      saved: prev.saved + depositAmount,
+    }));
+    setCustomHistory((prev) => [
+      {
+        id: `deposit_${Date.now()}`,
+        title: depositNote || `${subGoal.title} 存入`,
+        date: depositDate,
+        amount: depositAmount,
+        type: 'deposit',
+      },
+      ...prev,
+    ]);
+  };
+
+  const baseHistory =
     depositTransactions.length > 0
       ? depositTransactions.map((tx) => ({
         id: tx.id,
@@ -142,6 +166,8 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
         type: 'deposit',
       }))
       : fallbackHistory;
+
+  const historyItems = [...customHistory, ...baseHistory];
 
   return (
     <div className="space-y-4 pb-12 animate-fade-in font-sans">
@@ -199,9 +225,6 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
               <div className="glass-card rounded-3xl p-4 sm:p-5 shadow-soft-pink border border-rose-100/80 flex flex-col gap-3.5">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shadow-2xs">
-                      <Plane className="w-5 h-5" />
-                    </div>
                     <div>
                       <h2 className="text-sm sm:text-base font-extrabold text-rose-950">
                         {subGoal.title}
@@ -210,11 +233,11 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
                   </div>
 
                   <button
-                    onClick={() => setIsEditModalOpen(true)}
+                    onClick={() => setIsDepositDrawerOpen(true)}
                     className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-glow-pink active:scale-95 transition-all"
                   >
                     <Plus className="w-4 h-4" />
-                    <span>新增存錢目標</span>
+                    <span>來財</span>
                   </button>
                 </div>
 
@@ -420,6 +443,14 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
             onUpdateLedgerTarget(newTarget, newTitle);
           }
         }}
+      />
+
+      {/* Deposit Goal Drawer (matching screenshot design) */}
+      <DepositGoalDrawer
+        isOpen={isDepositDrawerOpen}
+        onClose={() => setIsDepositDrawerOpen(false)}
+        goalTitle={subGoal.title}
+        onDeposit={handleGoalDeposit}
       />
     </div>
   );
