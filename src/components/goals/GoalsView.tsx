@@ -11,7 +11,6 @@ import {
   Calendar,
   PiggyBank,
   CheckCircle2,
-  PieChart,
   Target,
   PlusCircle,
   TrendingUp,
@@ -53,7 +52,6 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
   // Secondary Quick Goal state (e.g., 沖繩夏日旅行 from Stitch)
   const [subGoal] = useState({
     title: '沖繩夏日旅行',
-    subtitle: '快速規劃目標',
     saved: 38000,
     target: 60000,
   });
@@ -157,42 +155,23 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
   const historyItems =
     depositTransactions.length > 0
       ? depositTransactions.map((tx) => ({
-          id: tx.id,
-          title: tx.note || tx.category.name,
-          date: tx.date,
-          amount: tx.amount,
-          type: 'deposit',
-        }))
+        id: tx.id,
+        title: tx.note || tx.category.name,
+        date: tx.date,
+        amount: tx.amount,
+        type: 'deposit',
+      }))
       : fallbackHistory;
 
   return (
     <div className="space-y-4 pb-12 animate-fade-in font-sans">
       {/* 1. Top Header & Ledger Context */}
-      <div className="flex items-center justify-between pt-1 px-1">
+      <div className="flex items-center justify-center pt-1 px-1">
         <div>
           <h1 className="text-xl font-extrabold text-rose-950 font-sans tracking-tight flex items-center gap-1.5">
             <span>存錢目標</span>
-            <span className="text-xs px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 font-bold border border-rose-200/60">
-              Goals
-            </span>
           </h1>
-          <p className="text-xs text-rose-800/60 font-medium mt-0.5">
-            {currentLedger.name} · 累積生活中的每個美好願望
-          </p>
         </div>
-
-        {/* Quick Budget Switch Pill */}
-        <button
-          onClick={() => setActiveTab(activeTab === 'budgets' ? 'active' : 'budgets')}
-          className={`flex items-center space-x-1 px-3 py-1.5 rounded-2xl text-xs font-bold transition-all ${
-            activeTab === 'budgets'
-              ? 'bg-rose-600 text-white shadow-glow-pink'
-              : 'bg-white/90 backdrop-blur-md text-rose-800 border border-rose-200/60 hover:bg-rose-50 shadow-2xs'
-          }`}
-        >
-          <PieChart className="w-3.5 h-3.5" />
-          <span>{activeTab === 'budgets' ? '返回目標' : '類別預算'}</span>
-        </button>
       </div>
 
       {activeTab === 'budgets' ? (
@@ -207,32 +186,28 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
           <div className="w-full bg-rose-100/70 p-1 rounded-full flex items-center justify-between border border-rose-200/50 shadow-inner">
             <button
               onClick={() => setActiveTab('active')}
-              className={`flex-1 py-2 px-4 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${
-                activeTab === 'active'
-                  ? 'bg-white text-rose-600 shadow-soft-pink scale-[1.01]'
-                  : 'text-slate-500 hover:text-rose-700'
-              }`}
+              className={`flex-1 py-2 px-4 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${activeTab === 'active'
+                ? 'bg-white text-rose-600 shadow-soft-pink scale-[1.01]'
+                : 'text-slate-500 hover:text-rose-700'
+                }`}
             >
               <span
-                className={`w-2 h-2 rounded-full inline-block ${
-                  activeTab === 'active' ? 'bg-rose-500' : 'bg-transparent'
-                }`}
+                className={`w-2 h-2 rounded-full inline-block ${activeTab === 'active' ? 'bg-rose-500' : 'bg-transparent'
+                  }`}
               />
               <span>進行中 (2)</span>
             </button>
 
             <button
               onClick={() => setActiveTab('completed')}
-              className={`flex-1 py-2 px-4 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${
-                activeTab === 'completed'
-                  ? 'bg-white text-rose-600 shadow-soft-pink scale-[1.01]'
-                  : 'text-slate-500 hover:text-rose-700'
-              }`}
+              className={`flex-1 py-2 px-4 rounded-full text-xs font-bold transition-all duration-200 flex items-center justify-center gap-1.5 ${activeTab === 'completed'
+                ? 'bg-white text-rose-600 shadow-soft-pink scale-[1.01]'
+                : 'text-slate-500 hover:text-rose-700'
+                }`}
             >
               <span
-                className={`w-2 h-2 rounded-full inline-block ${
-                  activeTab === 'completed' ? 'bg-rose-500' : 'bg-transparent'
-                }`}
+                className={`w-2 h-2 rounded-full inline-block ${activeTab === 'completed' ? 'bg-rose-500' : 'bg-transparent'
+                  }`}
               />
               <span>已完成 (1)</span>
             </button>
@@ -248,9 +223,6 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
                       <Plane className="w-5 h-5" />
                     </div>
                     <div>
-                      <span className="text-[11px] font-bold text-rose-800/60 block">
-                        {subGoal.subtitle}
-                      </span>
                       <h2 className="text-sm sm:text-base font-extrabold text-rose-950">
                         {subGoal.title}
                       </h2>
@@ -427,9 +399,8 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
                   >
                     <span>{showAllHistory ? '收起' : '查看全部'}</span>
                     <ChevronRight
-                      className={`w-3.5 h-3.5 transition-transform ${
-                        showAllHistory ? 'rotate-90' : ''
-                      }`}
+                      className={`w-3.5 h-3.5 transition-transform ${showAllHistory ? 'rotate-90' : ''
+                        }`}
                     />
                   </button>
                 </div>
