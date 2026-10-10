@@ -1,21 +1,13 @@
 import React, { useState } from 'react';
 import {
   Plane,
-  Heart,
-  Sparkles,
   Lightbulb,
   Receipt,
   Plus,
-  Pencil,
   ChevronRight,
-  Calendar,
-  PiggyBank,
   CheckCircle2,
-  Target,
-  PlusCircle,
   TrendingUp,
 } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { Ledger, Transaction } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
 import { EditGoalModal } from './EditGoalModal';
@@ -38,9 +30,9 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
   currentLedger,
   transactions,
   currentSavings,
-  userContribution,
-  partnerContribution,
-  onQuickDepositClick,
+  userContribution: _userContribution,
+  partnerContribution: _partnerContribution,
+  onQuickDepositClick: _onQuickDepositClick,
   onUpdateLedgerTarget,
   onUpdateLedgerBudget,
 }) => {
@@ -61,7 +53,6 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
 
   const isShared = currentLedger.type === 'shared';
   const targetAmount = currentLedger.targetAmount || (isShared ? 600000 : 100000);
-  const percent = Math.min(100, Math.round((currentSavings / targetAmount) * 1000) / 10);
   const remaining = Math.max(0, targetAmount - currentSavings);
 
   // Sub-goal calculations
@@ -111,17 +102,6 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
   };
 
   const planner = getPlannerConfig(plannerStep);
-
-  // Confetti celebration
-  const handleCelebrate = () => {
-    confetti({
-      particleCount: 60,
-      spread: 70,
-      origin: { y: 0.65 },
-      colors: ['#FB7185', '#F43F5E', '#EC4899', '#FFE4E6', '#F59E0B'],
-    });
-    if (onQuickDepositClick) onQuickDepositClick();
-  };
 
   // Recent deposit history (incorporate actual transactions if any, plus realistic items)
   const depositTransactions = transactions
@@ -268,121 +248,7 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
                 </div>
               </div>
 
-              {/* 4. Active Main Goal Overview Card */}
-              <div className="glass-card rounded-3xl p-5 shadow-soft-pink border border-rose-100/80 flex flex-col gap-3.5 relative overflow-hidden">
-                {/* Header Row */}
-                <div className="flex items-start justify-between">
-                  <div className="flex flex-col gap-1">
-                    <div className="flex items-center gap-2">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-rose-100/80 text-rose-700 text-[11px] font-bold border border-rose-200/60">
-                        <Sparkles className="w-3 h-3 mr-1 text-rose-500" />
-                        主力目標
-                      </span>
-                      <span className="text-xs font-medium text-slate-400">
-                        倒數 140 天
-                      </span>
-                    </div>
-                    <h3 className="text-base sm:text-lg font-extrabold text-rose-950 mt-0.5 tracking-tight">
-                      {currentLedger.name}
-                    </h3>
-                  </div>
 
-                  <div className="w-10 h-10 rounded-2xl bg-rose-100/70 border border-rose-200/60 flex items-center justify-center text-rose-600 shadow-2xs">
-                    {isShared ? (
-                      <Heart className="w-5 h-5 fill-rose-500 text-rose-500" />
-                    ) : (
-                      <Target className="w-5 h-5" />
-                    )}
-                  </div>
-                </div>
-
-                {/* Amount and Percentage */}
-                <div className="flex items-baseline justify-between pt-1">
-                  <div className="flex items-baseline gap-1.5">
-                    <span className="font-display font-extrabold text-3xl tracking-tight text-rose-600">
-                      {formatCurrency(currentSavings).replace('NT$', '')}
-                    </span>
-                    <span className="text-xs font-bold text-rose-800/60">
-                      / {formatCurrency(targetAmount)}
-                    </span>
-                  </div>
-                  <div className="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200/60 px-3 py-1 rounded-full shadow-2xs">
-                    {percent}%
-                  </div>
-                </div>
-
-                {/* Main Progress Bar */}
-                <div className="w-full h-3 bg-rose-100 rounded-full overflow-hidden p-0.5">
-                  <div
-                    className="h-full bg-gradient-to-r from-rose-400 via-rose-500 to-pink-500 rounded-full transition-all duration-700 shadow-xs"
-                    style={{ width: `${percent}%` }}
-                  />
-                </div>
-
-                {/* Status Badges */}
-                <div className="flex items-center justify-between pt-0.5">
-                  <div className="flex items-center gap-1.5 text-rose-900 font-bold text-xs">
-                    <PiggyBank className="w-4 h-4 text-rose-500" />
-                    <span>尚差 {formatCurrency(remaining)}</span>
-                  </div>
-                  <div className="flex items-center gap-1 text-slate-400 font-medium text-xs">
-                    <Calendar className="w-3.5 h-3.5" />
-                    <span>預計 11月 出發</span>
-                  </div>
-                </div>
-
-                {/* Couple Contribution Breakdown (if shared) */}
-                {isShared && (
-                  <div className="grid grid-cols-2 gap-2 pt-1 border-t border-rose-100/80">
-                    <div className="bg-rose-50/60 rounded-2xl p-2.5 border border-rose-100/70 flex items-center space-x-2">
-                      <div className="w-7 h-7 rounded-full bg-rose-200/60 flex items-center justify-center text-xs font-bold border border-rose-300/60 shrink-0">
-                        👦
-                      </div>
-                      <div className="overflow-hidden">
-                        <div className="text-[10px] text-rose-800/70 truncate font-semibold">
-                          培捷已存入
-                        </div>
-                        <div className="font-display font-bold text-xs text-rose-950 truncate">
-                          {formatCurrency(userContribution)}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="bg-rose-50/60 rounded-2xl p-2.5 border border-rose-100/70 flex items-center space-x-2">
-                      <div className="w-7 h-7 rounded-full bg-pink-200/60 flex items-center justify-center text-xs font-bold border border-pink-300/60 shrink-0">
-                        👧
-                      </div>
-                      <div className="overflow-hidden">
-                        <div className="text-[10px] text-rose-800/70 truncate font-semibold">
-                          婷婷已存入
-                        </div>
-                        <div className="font-display font-bold text-xs text-rose-950 truncate">
-                          {formatCurrency(partnerContribution)}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Actions: Edit & Celebrate */}
-                <div className="grid grid-cols-2 gap-2 pt-1">
-                  <button
-                    onClick={() => setIsEditModalOpen(true)}
-                    className="py-2 px-3 rounded-2xl bg-rose-50 hover:bg-rose-100/70 text-rose-700 text-xs font-bold border border-rose-200/60 flex items-center justify-center gap-1 transition-all active:scale-98"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                    <span>修改目標</span>
-                  </button>
-
-                  <button
-                    onClick={handleCelebrate}
-                    className="py-2 px-3 rounded-2xl bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white text-xs font-bold shadow-glow-pink flex items-center justify-center gap-1 transition-all active:scale-98"
-                  >
-                    <PlusCircle className="w-3.5 h-3.5" />
-                    <span>存入一筆 (彩帶)</span>
-                  </button>
-                </div>
-              </div>
 
               {/* 5. Savings History List (近期存入明細) */}
               <div className="glass-card rounded-3xl p-5 shadow-soft-pink border border-rose-100/80 flex flex-col gap-3">
@@ -445,10 +311,6 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
                   </div>
                 </div>
 
-                <p className="text-[11px] text-slate-500 font-medium">
-                  滑動預計達成日期，自動為您計算最適月存計畫
-                </p>
-
                 {/* Slider & Timeline Container */}
                 <div className="flex flex-col gap-3 py-1">
                   <div className="flex justify-between items-center bg-rose-50/70 border border-rose-100 rounded-2xl px-3.5 py-2">
@@ -509,13 +371,6 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
                     </span>
                     <span className="font-bold text-rose-950 font-sans">
                       {planner.dateStr}
-                    </span>
-                  </div>
-
-                  <div className="w-full bg-white rounded-xl p-2.5 flex items-center gap-2 border border-rose-100/80 shadow-2xs">
-                    <Sparkles className="w-4 h-4 text-amber-500 shrink-0" />
-                    <span className="text-[11px] text-rose-900 font-medium leading-relaxed">
-                      {planner.tip}
                     </span>
                   </div>
                 </div>
