@@ -1,5 +1,14 @@
-import React from 'react';
-import { ChevronLeft, MoreVertical, Car, ArrowUpRight, Rocket, Plus } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronLeft, MoreVertical, ArrowUpRight, Rocket, Plus } from 'lucide-react';
+import {
+  BarChart,
+  Bar,
+  Cell,
+  CartesianGrid,
+  XAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { formatCurrency } from '../../utils/formatters';
 
 interface GoalDetailViewProps {
@@ -18,22 +27,23 @@ export const GoalDetailView: React.FC<GoalDetailViewProps> = ({
   onTopUpClick,
 }) => {
   const percent = Math.min(100, Math.round((goal.saved / goal.target) * 100));
+  const [selectedMonthIndex, setSelectedMonthIndex] = useState<number>(4); // 預設 5月
 
   // Monthly savings analytics data (Jan to Jun)
   const monthlyData = [
-    { month: '1月', heightPercent: 65, value: '$1,300' },
-    { month: '2月', heightPercent: 52, value: '$1,040' },
-    { month: '3月', heightPercent: 38, value: '$760' },
-    { month: '4月', heightPercent: 48, value: '$960' },
-    { month: '5月', heightPercent: 88, value: '$1,760' },
-    { month: '6月', heightPercent: 60, value: '$1,200' },
+    { month: '1月', amount: 1300 },
+    { month: '2月', amount: 1040 },
+    { month: '3月', amount: 760 },
+    { month: '4月', amount: 960 },
+    { month: '5月', amount: 1760 },
+    { month: '6月', amount: 1200 },
   ];
 
   return (
     <div className="absolute inset-0 z-40 bg-gradient-to-b from-[#FFF0F5] via-[#FFF5F8] to-[#FFF0F4] flex flex-col overflow-hidden font-sans animate-in slide-in-from-right duration-300">
       {/* Scrollable Screen Content */}
       <div className="flex-1 overflow-y-auto px-5 pt-4 pb-28 no-scrollbar">
-        {/* 1. Header Bar: Back, Title, More */}
+        {/* 1. Header Bar: Back, Title (每張卡片的名字), More */}
         <div className="flex items-center justify-between pb-3 pt-1">
           <button
             onClick={onBack}
@@ -44,7 +54,7 @@ export const GoalDetailView: React.FC<GoalDetailViewProps> = ({
           </button>
 
           <h1 className="text-base font-extrabold text-rose-950 tracking-tight">
-            目標詳情
+            {goal.title || '目標詳情'}
           </h1>
 
           <button
@@ -55,108 +65,127 @@ export const GoalDetailView: React.FC<GoalDetailViewProps> = ({
           </button>
         </div>
 
-      <div className="space-y-4 pb-24">
-        {/* 2. Top Goal Status Header */}
-        <div className="pt-2">
-          <div className="flex items-start justify-between">
-            {/* Goal Icon */}
-            <div className="w-14 h-14 rounded-2xl bg-white border border-rose-100/90 shadow-soft-pink flex items-center justify-center text-rose-500">
-              <Car className="w-7 h-7 stroke-[1.8]" />
-            </div>
-
-            {/* Growth Badge */}
-            <div className="flex flex-col items-end">
-              <div className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-200/80 text-emerald-700 font-extrabold text-xs px-2.5 py-1 rounded-full shadow-sm">
-                <span className="w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px]">
-                  ↑
+        <div className="space-y-4 pb-24 pt-1">
+          {/* 3. Combined Progress & Saving Analytics Unified Card (外面那層為白色) */}
+          <div className="bg-white rounded-3xl p-4 sm:p-5 border border-rose-100/80 shadow-soft-pink space-y-4">
+            {/* Top: Progress Info */}
+            <div className="space-y-3">
+              <div className="flex items-baseline justify-between">
+                <span className="text-2xl font-black text-rose-950 tracking-tight font-display">
+                  {formatCurrency(goal.saved)}
                 </span>
-                <span>+112.00%</span>
+                <span className="text-sm font-bold text-slate-400 font-display">
+                  {formatCurrency(goal.target)}
+                </span>
               </div>
-              <span className="text-[11px] text-slate-400 font-medium mt-1">
-                自 4 月以來增長
-              </span>
-            </div>
-          </div>
 
-          {/* Goal Title & Motto */}
-          <div className="mt-3.5">
-            <h2 className="text-2xl font-black text-rose-950 tracking-tight">
-              {goal.title || '夏日度假'}
-            </h2>
-            <p className="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1">
-              <span>專注累積，才能盡情享受旅程</span>
-              <span>🤩</span>
-            </p>
-          </div>
-        </div>
+              {/* Progress Bar */}
+              <div className="w-full h-2 bg-rose-100/70 rounded-full overflow-hidden flex items-center p-0.5">
+                <div
+                  className="h-full bg-gradient-to-r from-rose-500 to-rose-600 rounded-full transition-all duration-700"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
 
-        {/* 3. Main Progress Card */}
-        <div className="bg-white rounded-3xl p-5 border border-rose-100/80 shadow-soft-pink space-y-3.5">
-          <div className="flex items-baseline justify-between">
-            <span className="text-2xl font-black text-rose-950 tracking-tight font-display">
-              {formatCurrency(goal.saved)}
-            </span>
-            <span className="text-sm font-bold text-slate-400 font-display">
-              {formatCurrency(goal.target)}
-            </span>
-          </div>
-
-          {/* Progress Bar */}
-          <div className="w-full h-2.5 bg-rose-100/70 rounded-full overflow-hidden flex items-center p-0.5">
-            <div
-              className="h-full bg-gradient-to-r from-rose-500 to-rose-600 rounded-full transition-all duration-700"
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-
-          {/* Countdown & Percentage */}
-          <div className="flex items-center justify-between text-xs font-bold pt-0.5">
-            <span className="text-slate-600">倒數 20 天</span>
-            <span className="text-rose-950">{percent}%</span>
-          </div>
-        </div>
-
-        {/* 4. Saving Analytics Card */}
-        <div className="bg-white rounded-3xl p-5 border border-rose-100/80 shadow-soft-pink space-y-4">
-          <div>
-            <h3 className="text-sm font-black text-rose-950">
-              儲蓄分析
-            </h3>
-            <p className="text-xs text-slate-400 font-medium mt-0.5">
-              每月平均 <span className="font-bold text-slate-700">$1,202</span>
-            </p>
-          </div>
-
-          {/* Bar Chart Container */}
-          <div className="relative pt-6 pb-2">
-            {/* Background horizontal dashed guides */}
-            <div className="absolute inset-0 flex flex-col justify-between pointer-events-none py-2 opacity-30">
-              <div className="border-b border-dashed border-slate-300 w-full" />
-              <div className="border-b border-dashed border-slate-300 w-full" />
-              <div className="border-b border-dashed border-slate-300 w-full" />
+              {/* Countdown & Percentage */}
+              <div className="flex items-center justify-between text-xs font-bold pt-0.5">
+                <span className="text-slate-500 font-medium">倒數 20 天</span>
+                <span className="text-rose-950 font-bold">{percent}%</span>
+              </div>
             </div>
 
-            {/* Bars */}
-            <div className="relative flex items-end justify-between h-36 px-2">
-              {monthlyData.map((item, idx) => (
-                <div key={idx} className="flex flex-col items-center gap-2 flex-1 group">
-                  <div className="w-8 sm:w-9 bg-rose-100/50 rounded-2xl flex items-end justify-center h-full p-0.5">
-                    <div
-                      className="w-full bg-gradient-to-t from-rose-950 via-rose-900 to-rose-800 rounded-2xl transition-all duration-500 group-hover:from-rose-600 group-hover:to-rose-500 shadow-sm relative overflow-hidden"
-                      style={{ height: `${item.heightPercent}%` }}
+            {/* Bottom: Nested Saving Analytics Inner Card (shadcn/ui 圓角風格) */}
+            <div className="bg-white rounded-2xl p-3.5 sm:p-4 border border-rose-100/80 shadow-2xs space-y-3">
+              <div>
+                <h3 className="text-sm font-black text-rose-950">
+                  儲蓄分析
+                </h3>
+                <p className="text-xs text-slate-400 font-medium mt-0.5">
+                  每月平均 <span className="font-bold text-slate-700">$1,202</span>
+                </p>
+              </div>
+
+              {/* shadcn/ui Recharts Bar Chart (與分析頁完全一致風格) */}
+              <div className="h-44 w-full pt-1">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    data={monthlyData}
+                    margin={{ top: 20, right: 4, left: 4, bottom: 0 }}
+                    onClick={(state) => {
+                      if (state && state.activeTooltipIndex !== undefined) {
+                        setSelectedMonthIndex(state.activeTooltipIndex);
+                      }
+                    }}
+                  >
+                    {/* 水平虛線格線 */}
+                    <CartesianGrid
+                      vertical={false}
+                      stroke="#FCE7F3"
+                      strokeDasharray="3 3"
+                    />
+
+                    <XAxis
+                      dataKey="month"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={10}
+                      tick={({ x, y, payload, index }) => {
+                        const isSelected = selectedMonthIndex === index;
+                        return (
+                          <text
+                            x={x}
+                            y={y}
+                            textAnchor="middle"
+                            className={`text-[11px] select-none transition-colors duration-150 ${
+                              isSelected
+                                ? 'fill-rose-950 font-extrabold'
+                                : 'fill-slate-400 font-medium'
+                            }`}
+                          >
+                            {payload.value}
+                          </text>
+                        );
+                      }}
+                    />
+
+                    <Tooltip
+                      cursor={false}
+                      content={({ active, payload }) => {
+                        if (active && payload && payload.length) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-rose-950 text-white font-display font-extrabold text-[11px] px-2.5 py-1 rounded-xl shadow-lg shadow-rose-950/20 whitespace-nowrap flex items-center space-x-1 -translate-y-2 animate-in fade-in zoom-in-95 duration-100">
+                              <span>{formatCurrency(data.amount)}</span>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+
+                    <Bar
+                      dataKey="amount"
+                      radius={[10, 10, 8, 8]}
+                      barSize={32}
+                      className="cursor-pointer"
                     >
-                      {/* Subtle diagonal striped texture to match screenshot feel */}
-                      <div className="absolute inset-0 opacity-15 bg-[repeating-linear-gradient(45deg,transparent,transparent_4px,rgba(255,255,255,0.4)_4px,rgba(255,255,255,0.4)_8px)]" />
-                    </div>
-                  </div>
-                  <span className="text-[11px] font-medium text-slate-400 group-hover:text-rose-950 transition-colors">
-                    {item.month}
-                  </span>
-                </div>
-              ))}
+                      {monthlyData.map((_entry, index) => {
+                        const isSelected = selectedMonthIndex === index;
+                        return (
+                          <Cell
+                            key={`bar-cell-${index}`}
+                            fill={isSelected ? '#F43F5E' : '#E2E8F0'}
+                            className="transition-colors duration-200"
+                            onClick={() => setSelectedMonthIndex(index)}
+                          />
+                        );
+                      })}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             </div>
           </div>
-        </div>
 
         {/* 5. Transactions Section */}
         <div className="space-y-2.5 pt-1">
