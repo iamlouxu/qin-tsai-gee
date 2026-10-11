@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { MobileContainer } from './components/layout/MobileContainer';
 import { BottomNav } from './components/layout/BottomNav';
 import { LedgerSwitcher } from './components/dashboard/LedgerSwitcher';
@@ -16,6 +16,7 @@ import { Ledger, Transaction } from './types';
 
 // App 根元件：負責全域狀態管理與路由配置
 export function App() {
+  const location = useLocation();
   const [ledgers, setLedgers] = useState<Ledger[]>(initialLedgers);
   // Default to Personal Ledger as requested by user
   const [currentLedger, setCurrentLedger] = useState<Ledger>(initialLedgers[0]);
@@ -26,6 +27,15 @@ export function App() {
   const currentLedgerTransactions = useMemo(() => {
     return transactions.filter((t) => t.ledgerId === currentLedger.id);
   }, [transactions, currentLedger.id]);
+
+  const [isGoalDetailOpen, setIsGoalDetailOpen] = useState(false);
+
+  // Reset detail view state if navigated away from /goals
+  useEffect(() => {
+    if (location.pathname !== '/goals') {
+      setIsGoalDetailOpen(false);
+    }
+  }, [location.pathname]);
 
   // Compute Personal Ledger Stats
   const personalStats = useMemo(() => {
@@ -200,11 +210,13 @@ export function App() {
           path="/goals"
           element={
             <>
-              <LedgerSwitcher
-                ledgers={ledgers}
-                currentLedger={currentLedger}
-                onSelectLedger={setCurrentLedger}
-              />
+              {!isGoalDetailOpen && (
+                <LedgerSwitcher
+                  ledgers={ledgers}
+                  currentLedger={currentLedger}
+                  onSelectLedger={setCurrentLedger}
+                />
+              )}
               <GoalsView
                 currentLedger={currentLedger}
                 transactions={transactions}
@@ -226,6 +238,7 @@ export function App() {
                 onQuickDepositClick={() => setIsQuickAddOpen(true)}
                 onUpdateLedgerTarget={handleUpdateLedgerTarget}
                 onUpdateLedgerBudget={handleUpdateLedgerBudget}
+                onDetailOpenChange={setIsGoalDetailOpen}
               />
             </>
           }
@@ -253,8 +266,10 @@ export function App() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
-      {/* Floating Bottom Navigation Bar with centered Add Button */}
-      <BottomNav onAddClick={() => setIsQuickAddOpen(true)} />
+      {/* Floating Bottom Navigation Bar (Hidden when on independent detail pages) */}
+      {!isGoalDetailOpen && (
+        <BottomNav onAddClick={() => setIsQuickAddOpen(true)} />
+      )}
 
       {/* Quick Add Drawer Modal */}
       <QuickAddDrawer
