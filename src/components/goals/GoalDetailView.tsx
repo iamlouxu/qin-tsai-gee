@@ -89,7 +89,7 @@ export const GoalDetailView: React.FC<GoalDetailViewProps> = ({
 
               {/* Countdown & Percentage */}
               <div className="flex items-center justify-between text-xs font-bold pt-0.5">
-                <span className="text-slate-500 font-medium">倒數 20 天</span>
+                <span className="text-slate-500 font-medium">進度 30%</span>
                 <span className="text-rose-950 font-bold">{percent}%</span>
               </div>
             </div>
@@ -136,11 +136,10 @@ export const GoalDetailView: React.FC<GoalDetailViewProps> = ({
                             x={x}
                             y={y}
                             textAnchor="middle"
-                            className={`text-[11px] select-none transition-colors duration-150 ${
-                              isSelected
+                            className={`text-[11px] select-none transition-colors duration-150 ${isSelected
                                 ? 'fill-rose-950 font-extrabold'
                                 : 'fill-slate-400 font-medium'
-                            }`}
+                              }`}
                           >
                             {payload.value}
                           </text>
@@ -187,74 +186,74 @@ export const GoalDetailView: React.FC<GoalDetailViewProps> = ({
             </div>
           </div>
 
-        {/* 5. Transactions Section */}
-        <div className="space-y-2.5 pt-1">
-          <h3 className="text-sm font-black text-rose-950 px-1">
-            存入明細
-          </h3>
+          {/* 5. Transactions Section */}
+          <div className="space-y-2.5 pt-1">
+            <h3 className="text-sm font-black text-rose-950 px-1">
+              存入明細
+            </h3>
 
-          <div className="space-y-2.5">
-            {/* Transaction item 1 */}
-            <div className="bg-white rounded-2xl p-3.5 border border-rose-100/70 shadow-sm flex items-center justify-between hover:shadow-soft-pink transition-all">
-              <div className="flex items-center gap-3">
-                <div className="relative w-11 h-11 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100">
-                  <Rocket className="w-5 h-5 text-rose-500" />
-                  <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold border-2 border-white shadow-sm">
-                    <ArrowUpRight className="w-2.5 h-2.5" />
+            <div className="space-y-2.5">
+              {/* Transaction item 1 */}
+              <div className="bg-white rounded-2xl p-3.5 border border-rose-100/70 shadow-sm flex items-center justify-between hover:shadow-soft-pink transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="relative w-11 h-11 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100">
+                    <Rocket className="w-5 h-5 text-rose-500" />
+                    <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold border-2 border-white shadow-sm">
+                      <ArrowUpRight className="w-2.5 h-2.5" />
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-extrabold text-rose-950">
+                      目標存入
+                    </h4>
+                    <p className="text-[11px] text-slate-400 font-medium">
+                      夏日度假基金
+                    </p>
+                  </div>
+                </div>
+
+                <div className="text-right">
+                  <span className="text-xs sm:text-sm font-black text-rose-950 block">
+                    +$320.00
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    12:00 PM
                   </span>
                 </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-extrabold text-rose-950">
-                    目標存入
-                  </h4>
-                  <p className="text-[11px] text-slate-400 font-medium">
-                    夏日度假基金
-                  </p>
+              </div>
+
+              {/* Transaction item 2 */}
+              <div className="bg-white rounded-2xl p-3.5 border border-rose-100/70 shadow-sm flex items-center justify-between hover:shadow-soft-pink transition-all">
+                <div className="flex items-center gap-3">
+                  <div className="relative w-11 h-11 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100">
+                    <Rocket className="w-5 h-5 text-rose-500" />
+                    <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold border-2 border-white shadow-sm">
+                      <ArrowUpRight className="w-2.5 h-2.5" />
+                    </span>
+                  </div>
+                  <div>
+                    <h4 className="text-xs sm:text-sm font-extrabold text-rose-950">
+                      目標存入
+                    </h4>
+                    <p className="text-[11px] text-slate-400 font-medium">
+                      夏日度假基金
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              <div className="text-right">
-                <span className="text-xs sm:text-sm font-black text-rose-950 block">
-                  +$320.00
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium">
-                  12:00 PM
-                </span>
-              </div>
-            </div>
-
-            {/* Transaction item 2 */}
-            <div className="bg-white rounded-2xl p-3.5 border border-rose-100/70 shadow-sm flex items-center justify-between hover:shadow-soft-pink transition-all">
-              <div className="flex items-center gap-3">
-                <div className="relative w-11 h-11 rounded-2xl bg-rose-50 flex items-center justify-center text-rose-600 border border-rose-100">
-                  <Rocket className="w-5 h-5 text-rose-500" />
-                  <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[9px] font-bold border-2 border-white shadow-sm">
-                    <ArrowUpRight className="w-2.5 h-2.5" />
+                <div className="text-right">
+                  <span className="text-xs sm:text-sm font-black text-rose-950 block">
+                    +$320.00
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    10:15 AM
                   </span>
                 </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-extrabold text-rose-950">
-                    目標存入
-                  </h4>
-                  <p className="text-[11px] text-slate-400 font-medium">
-                    夏日度假基金
-                  </p>
-                </div>
-              </div>
-
-              <div className="text-right">
-                <span className="text-xs sm:text-sm font-black text-rose-950 block">
-                  +$320.00
-                </span>
-                <span className="text-[10px] text-slate-400 font-medium">
-                  10:15 AM
-                </span>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
 
       {/* 6. Fixed Bottom Action Button: + 存入款項 (位置與外層 BottomNav 完全一致且固定不滑動) */}
       <div className="absolute bottom-5 left-5 right-5 z-50 pointer-events-auto">
