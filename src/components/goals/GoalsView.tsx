@@ -1,17 +1,11 @@
 import React, { useState } from 'react';
-import {
-  Lightbulb,
-  Receipt,
-  Plus,
-  ChevronRight,
-  CheckCircle2,
-  TrendingUp,
-} from 'lucide-react';
+import { CheckCircle2, ChevronRight } from 'lucide-react';
 import { Ledger, Transaction } from '../../types';
 import { formatCurrency } from '../../utils/formatters';
 import { EditGoalModal } from './EditGoalModal';
 import { DepositGoalDrawer } from './DepositGoalDrawer';
 import { CategoryBudgetSection } from './CategoryBudgetSection';
+import { GoalDetailView } from './GoalDetailView';
 
 interface GoalsViewProps {
   currentLedger: Ledger;
@@ -22,6 +16,7 @@ interface GoalsViewProps {
   onQuickDepositClick?: () => void;
   onUpdateLedgerTarget?: (newTarget: number, title?: string) => void;
   onUpdateLedgerBudget?: (newBudget: number) => void;
+  onDetailOpenChange?: (isOpen: boolean) => void;
 }
 
 type TabState = 'active' | 'completed' | 'budgets';
@@ -29,37 +24,39 @@ type TabState = 'active' | 'completed' | 'budgets';
 export const GoalsView: React.FC<GoalsViewProps> = ({
   currentLedger,
   transactions,
-  currentSavings,
+  currentSavings: _currentSavings,
   userContribution: _userContribution,
   partnerContribution: _partnerContribution,
   onQuickDepositClick: _onQuickDepositClick,
   onUpdateLedgerTarget,
   onUpdateLedgerBudget,
+  onDetailOpenChange,
 }) => {
   // Tab state: active (進行中), completed (已完成), budgets (類別預算)
   const [activeTab, setActiveTab] = useState<TabState>('active');
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isDepositDrawerOpen, setIsDepositDrawerOpen] = useState(false);
-  const [showAllHistory, setShowAllHistory] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
+
+  const handleOpenDetail = () => {
+    setIsDetailOpen(true);
+    onDetailOpenChange?.(true);
+  };
+
+  const handleCloseDetail = () => {
+    setIsDetailOpen(false);
+    onDetailOpenChange?.(false);
+  };
 
   // Secondary Quick Goal state (e.g., 沖繩夏日旅行 from Stitch)
   const [subGoal, setSubGoal] = useState({
     title: '沖繩夏日旅行',
-    saved: 38000,
-    target: 60000,
+    saved: 15000,
+    target: 50000,
   });
-
-  // Custom added deposit history
-  const [customHistory, setCustomHistory] = useState<
-    { id: string; title: string; date: string; amount: number; type: string }[]
-  >([]);
-
-  // Smart Planner slider state (1: 3個月, 2: 6個月, 3: 9個月, 4: 12個月)
-  const [plannerStep, setPlannerStep] = useState<number>(2);
 
   const isShared = currentLedger.type === 'shared';
   const targetAmount = currentLedger.targetAmount || (isShared ? 600000 : 100000);
-  const remaining = Math.max(0, targetAmount - currentSavings);
 
   // Sub-goal calculations
   const subGoalPercent = Math.min(
@@ -68,106 +65,34 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
   );
   const subGoalRemaining = Math.max(0, subGoal.target - subGoal.saved);
 
-  // Smart Planner Calculations based on active slider step
-  const getPlannerConfig = (step: number) => {
-    switch (step) {
-      case 1:
-        return {
-          months: 3,
-          label: '2025年 8月 (約 3 個月後)',
-          amount: Math.ceil(remaining / 3) || 9330,
-          dateStr: '2025 年 8 月 15 日',
-          tip: '目標進度加快，注意檢視本月各項生活節約支出！',
-        };
-      case 2:
-      default:
-        return {
-          months: 6,
-          label: '2025年 10月 (約 5 個月後)',
-          amount: Math.ceil(remaining / 6) || 5600,
-          dateStr: '2025 年 10 月 15 日',
-          tip: '每月多存 NT$ 1,200，即可提早 1 個月達成！',
-        };
-      case 3:
-        return {
-          months: 9,
-          label: '2026年 1月 (約 9 個月後)',
-          amount: Math.ceil(remaining / 9) || 3110,
-          dateStr: '2026 年 1 月 20 日',
-          tip: '儲蓄負擔輕鬆平穩，適合建立長期規律儲蓄慣性。',
-        };
-      case 4:
-        return {
-          months: 12,
-          label: '2026年 4月 (約 12 個月後)',
-          amount: Math.ceil(remaining / 12) || 2330,
-          dateStr: '2026 年 4 月 30 日',
-          tip: '每天少喝一杯手搖飲，就能輕鬆達標！',
-        };
-    }
-  };
-
-  const planner = getPlannerConfig(plannerStep);
-
-  // Recent deposit history (incorporate actual transactions if any, plus realistic items)
-  const depositTransactions = transactions
-    .filter((tx) => tx.type === 'savings_deposit' || tx.type === 'income')
-    .slice(0, 3);
-
-  const fallbackHistory = [
-    {
-      id: 'h1',
-      title: '5月獎金定存',
-      date: '2026/05/10',
-      amount: 10000,
-      type: 'bonus',
-    },
-    {
-      id: 'h2',
-      title: '每月固定扣款',
-      date: '2026/05/01',
-      amount: 5000,
-      type: 'auto',
-    },
-    {
-      id: 'h3',
-      title: '節流額外存入',
-      date: '2026/04/18',
-      amount: 3000,
-      type: 'saving',
-    },
-  ];
-
   // Handler for depositing into goal
-  const handleGoalDeposit = (depositAmount: number, depositDate: string, depositNote: string) => {
+  const handleGoalDeposit = (depositAmount: number) => {
     setSubGoal((prev) => ({
       ...prev,
       saved: prev.saved + depositAmount,
     }));
-    setCustomHistory((prev) => [
-      {
-        id: `deposit_${Date.now()}`,
-        title: depositNote || `${subGoal.title} 存入`,
-        date: depositDate,
-        amount: depositAmount,
-        type: 'deposit',
-      },
-      ...prev,
-    ]);
   };
 
-  const baseHistory =
-    depositTransactions.length > 0
-      ? depositTransactions.map((tx) => ({
-        id: tx.id,
-        title: tx.note || tx.category.name,
-        date: tx.date,
-        amount: tx.amount,
-        type: 'deposit',
-      }))
-      : fallbackHistory;
+  // If viewing details of a goal, render GoalDetailView directly
+  if (isDetailOpen) {
+    return (
+      <>
+        <GoalDetailView
+          goal={subGoal}
+          onBack={handleCloseDetail}
+          onTopUpClick={() => setIsDepositDrawerOpen(true)}
+        />
 
-  const historyItems = [...customHistory, ...baseHistory];
+        {/* Deposit Goal Drawer */}
+        <DepositGoalDrawer
+          isOpen={isDepositDrawerOpen}
+          onClose={() => setIsDepositDrawerOpen(false)}
+          goalTitle={subGoal.title}
+          onDeposit={handleGoalDeposit}
+        />
+      </>
+    );
+  }
 
   return (
     <div className="space-y-4 pb-12 animate-fade-in font-sans">
@@ -233,11 +158,11 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
                   </div>
 
                   <button
-                    onClick={() => setIsDepositDrawerOpen(true)}
-                    className="bg-gradient-to-r from-rose-500 to-rose-600 hover:from-rose-600 hover:to-rose-700 text-white px-3.5 py-1.5 rounded-full text-xs font-bold flex items-center gap-1 shadow-glow-pink active:scale-95 transition-all"
+                    onClick={handleOpenDetail}
+                    aria-label="查看目標詳情"
+                    className="w-8 h-8 rounded-xl bg-white border border-rose-100/90 shadow-sm flex items-center justify-center text-slate-700 hover:text-rose-600 hover:bg-rose-50/60 active:scale-95 transition-all"
                   >
-                    <Plus className="w-4 h-4" />
-                    <span>來財</span>
+                    <ChevronRight className="w-4 h-4 stroke-[2.5]" />
                   </button>
                 </div>
 
@@ -270,137 +195,9 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
                   </div>
                 </div>
               </div>
-
-
-
-              {/* 5. Savings History List (近期存入明細) */}
-              <div className="glass-card rounded-3xl p-5 shadow-soft-pink border border-rose-100/80 flex flex-col gap-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Receipt className="w-4 h-4 text-rose-500" />
-                    <h4 className="text-sm font-extrabold text-rose-950">
-                      近期存入明細
-                    </h4>
-                  </div>
-                  <button
-                    onClick={() => setShowAllHistory(!showAllHistory)}
-                    className="text-xs font-bold text-rose-800/70 hover:text-rose-600 transition-colors flex items-center gap-0.5"
-                  >
-                    <span>{showAllHistory ? '收起' : '查看全部'}</span>
-                    <ChevronRight
-                      className={`w-3.5 h-3.5 transition-transform ${showAllHistory ? 'rotate-90' : ''
-                        }`}
-                    />
-                  </button>
-                </div>
-
-                <div className="flex flex-col divide-y divide-rose-100/60">
-                  {historyItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between py-2.5 first:pt-1 last:pb-1"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-2xl bg-rose-50 border border-rose-100 flex items-center justify-center text-rose-500 shrink-0">
-                          <TrendingUp className="w-4 h-4" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-bold text-rose-950">
-                            {item.title}
-                          </span>
-                          <span className="text-[10px] text-slate-400 font-medium">
-                            {item.date}
-                          </span>
-                        </div>
-                      </div>
-                      <span className="font-display font-bold text-xs text-rose-600 bg-rose-50/80 border border-rose-100/70 px-2 py-0.5 rounded-lg">
-                        +{formatCurrency(item.amount)}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* 6. Smart Savings Calculator (智慧試算規劃) */}
-              <div className="glass-card rounded-3xl p-5 shadow-soft-pink border border-rose-100/80 flex flex-col gap-3.5">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-2xl bg-rose-100/80 border border-rose-200/50 flex items-center justify-center text-rose-500">
-                    <Lightbulb className="w-4 h-4" />
-                  </div>
-                  <div>
-                    <h4 className="text-sm font-extrabold text-rose-950">
-                      智慧試算規劃
-                    </h4>
-                  </div>
-                </div>
-
-                {/* Slider & Timeline Container */}
-                <div className="flex flex-col gap-3 py-1">
-                  <div className="flex justify-between items-center bg-rose-50/70 border border-rose-100 rounded-2xl px-3.5 py-2">
-                    <span className="text-xs font-semibold text-rose-800/70">
-                      預定進程
-                    </span>
-                    <span className="text-xs font-bold text-rose-600 bg-white px-2.5 py-0.5 rounded-full border border-rose-200/60 shadow-2xs">
-                      {planner.label}
-                    </span>
-                  </div>
-
-                  <div className="relative px-1 pt-1">
-                    <input
-                      type="range"
-                      min="1"
-                      max="4"
-                      step="1"
-                      value={plannerStep}
-                      onChange={(e) => setPlannerStep(parseInt(e.target.value))}
-                      className="w-full h-2 bg-rose-200/60 rounded-full appearance-none cursor-pointer accent-rose-500"
-                    />
-                    <div className="flex justify-between items-center text-slate-400 font-semibold text-[10px] mt-2 px-1">
-                      <span className={plannerStep === 1 ? 'text-rose-600 font-bold' : ''}>
-                        3 個月
-                      </span>
-                      <span className={plannerStep === 2 ? 'text-rose-600 font-bold' : ''}>
-                        6 個月
-                      </span>
-                      <span className={plannerStep === 3 ? 'text-rose-600 font-bold' : ''}>
-                        9 個月
-                      </span>
-                      <span className={plannerStep === 4 ? 'text-rose-600 font-bold' : ''}>
-                        12 個月
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Calculation Result Highlight Card */}
-                <div className="w-full bg-rose-50/70 rounded-2xl p-4 border border-rose-100/80 flex flex-col gap-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-xs text-rose-800/70 font-semibold">
-                      每月建議存入金額
-                    </span>
-                    <div className="flex items-baseline gap-1">
-                      <span className="font-display font-extrabold text-lg text-rose-600">
-                        {formatCurrency(planner.amount)}
-                      </span>
-                      <span className="text-[11px] text-rose-800/60 font-medium">
-                        / 月
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-rose-800/70 font-semibold">
-                      預計完成日期
-                    </span>
-                    <span className="font-bold text-rose-950 font-sans">
-                      {planner.dateStr}
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
           ) : (
-            /* 7. Completed Tab (已完成) */
+            /* Completed Tab (已完成) */
             <div className="glass-card rounded-3xl p-5 shadow-soft-pink border border-rose-100/80 flex flex-col gap-3.5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
@@ -455,4 +252,5 @@ export const GoalsView: React.FC<GoalsViewProps> = ({
     </div>
   );
 };
+
 
